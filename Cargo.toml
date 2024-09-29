@@ -3,6 +3,10 @@ name = "mos-6502"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "mos_6502"
+path = "src/lib.rs"
+
 [dependencies]
 deku = "0.18.1"
 num = "0.4.3"

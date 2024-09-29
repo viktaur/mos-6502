@@ -8,8 +8,8 @@ use deku::prelude::*;
 pub struct CPU {
     /// Program counter.
     pc: Word,
-    /// Stack pointer.
-    sp: Word,
+    /// Stack pointer (should only be `Byte`, not a `Word`).
+    sp: Byte,
     // Registers.
     registers: Registers,
     // Status flags.
@@ -20,7 +20,8 @@ impl CPU {
     pub fn new() -> Self {
         Self {
             pc: 0xFFFC,
-            sp: 0x0100,
+            // TODO: Check the initial sp address.
+            sp: 0xFF,
             registers: Registers::new(),
             flags: StatusFlags::new(),
         }
@@ -28,7 +29,7 @@ impl CPU {
 
     pub fn reset(&mut self, mem: &mut Mem) {
         self.pc = 0xFFFC;
-        self.sp = 0x0100;
+        self.sp = 0xFF;
         self.registers.clear();
         self.flags.clear();
         mem.init()
@@ -76,7 +77,7 @@ impl CPU {
                 },
                 Some(Instruction::INS_JSR) => {
                     let sub_addr = self.fetch_word(mem);
-                    mem.write_word(self.sp, self.pc - 1);
+                    mem.write_word(self.sp.into(), self.pc - 1);
                 }
                 _ => {
                     println!("Instruction not handled");

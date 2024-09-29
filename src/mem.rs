@@ -35,7 +35,8 @@ impl Mem {
         data
     }
 
-    pub fn write_word(&self, address: Word, value: Word) {
-        todo!()
+    pub fn write_word(&mut self, address: Word, value: Word) {
+        self.write_byte(address, value as Byte);
+        self.write_byte(address + 1, (value >> 8) as Byte);
     }
 }

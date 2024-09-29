@@ -10,5 +10,5 @@ pub enum Instruction {
     /// Load Accummulator (LDA) Zero Page X.
     INS_LDA_ZPX = 0xB5,
     /// Jump to Subroutine
-    INS_JSR,
+    INS_JSR = 0x20,
 }
