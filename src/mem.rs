@@ -40,3 +40,19 @@ impl Mem {
         self.write_byte(address + 1, (value >> 8) as Byte);
     }
 }
+
+pub enum Addressing {
+    Implicit,
+    Accummulator,
+    Immediate,
+    ZeroPage,
+    ZeroPageX,
+    ZeroPageY,
+    Relative,
+    Absolute,
+    AbsoluteX,
+    AbsoluteY,
+    Indirect,
+    IndexedIndirect,
+    IndirectIndexed,
+}

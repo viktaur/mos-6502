@@ -8,6 +8,7 @@ name = "mos_6502"
 path = "src/lib.rs"
 
 [dependencies]
+ctor = "0.2.8"
 deku = "0.18.1"
 num = "0.4.3"
 num-derive = "0.4.2"

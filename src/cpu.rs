@@ -1,19 +1,17 @@
 use crate::{Byte, Word};
-use crate::ins::Instruction;
-use crate::mem::Mem;
-use num::{FromPrimitive, ToPrimitive};
+use crate::mem::{Addressing, Mem};
 use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
 pub struct CPU {
     /// Program counter.
-    pc: Word,
+    pub pc: Word,
     /// Stack pointer (should only be `Byte`, not a `Word`).
-    sp: Byte,
+    pub sp: Byte,
     // Registers.
-    registers: Registers,
+    pub registers: Registers,
     // Status flags.
-    flags: StatusFlags,
+    pub flags: StatusFlags,
 }
 
 impl CPU {
@@ -55,42 +53,15 @@ impl CPU {
     }
 
     pub fn execute(&mut self, mem: &mut Mem) {
-        // while cycles > 0 {
-            let ins = self.fetch_byte(mem);
-            match Instruction::from_u8(ins) {
-                Some(Instruction::INS_LDA_IM) => {
-                    let current_addr = self.fetch_byte(mem);
-                    self.registers.a = current_addr;
-                    self.lda_set_flags();
-                },
-                Some(Instruction::INS_LDA_ZP) => {
-                    // TODO: Check conversions between Byte and Word.
-                    let zero_page_addr = self.fetch_byte(mem);
-                    self.registers.a = mem.read_byte(zero_page_addr.into());
-                    self.lda_set_flags();
-                },
-                Some(Instruction::INS_LDA_ZPX) => {
-                    let mut zero_page_addr = self.fetch_word(mem);
-                    zero_page_addr += self.registers.x as Word;
-                    self.registers.a = mem.read_byte(zero_page_addr);
-                    self.lda_set_flags();
-                },
-                Some(Instruction::INS_JSR) => {
-                    let sub_addr = self.fetch_word(mem);
-                    mem.write_word(self.sp.into(), self.pc - 1);
-                }
-                _ => {
-                    println!("Instruction not handled");
-                }
-            }
-        // }
+        let ins_code = self.fetch_byte(mem);
+        Ins::from_byte(ins_code).execute(self, mem);
     }
 }
 
-struct Registers {
-    a: Byte,
-    x: Byte,
-    y: Byte,
+pub struct Registers {
+    pub a: Byte,
+    pub x: Byte,
+    pub y: Byte,
 }
 
 impl Registers {
@@ -142,5 +113,78 @@ impl StatusFlags {
 
     fn clear(&mut self) {
         *self = Self::default();
+    }
+}
+
+pub enum Ins {
+    LDA(Addressing),
+    JSR(Addressing)
+}
+
+impl Ins {
+    pub fn from_byte(code: Byte) -> Self {
+        match code {
+            0x49 => Ins::LDA(Addressing::Immediate),
+            0xA5 => Ins::LDA(Addressing::ZeroPage),
+            0xB5 => Ins::LDA(Addressing::ZeroPageX),
+            0x20 => Ins::JSR(Addressing::Absolute),
+            _ => panic!("Unable to identify instruction.")
+        }
+    }
+
+    pub fn code(&self) -> Byte {
+        match self {
+            Ins::LDA(a) => {
+                match a {
+                    Addressing::Immediate => 0x49,
+                    Addressing::ZeroPage => 0xA5,
+                    Addressing::ZeroPageX => 0xB5,
+                    _ => panic!("Instruction not supported.")
+                }
+            },
+            Ins::JSR(a) => {
+                match a {
+                    Addressing::Absolute => 0x20,
+                    _ => panic!("Instruction not supported.")
+                }
+            },
+        }
+    }
+
+    pub fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+        match self {
+            Ins::LDA(a) => {
+                match a {
+                    Addressing::Immediate => {
+                        let current_addr = cpu.fetch_byte(mem);
+                        cpu.registers.a = current_addr;
+                        cpu.lda_set_flags();
+                    },
+                    Addressing::ZeroPage => {
+                        // TODO: Check conversions between Byte and Word.
+                        let zero_page_addr = cpu.fetch_byte(mem);
+                        cpu.registers.a = mem.read_byte(zero_page_addr as Word);
+                        cpu.lda_set_flags();
+                    },
+                    Addressing::ZeroPageX => {
+                        let mut zero_page_addr = cpu.fetch_word(mem);
+                        zero_page_addr += cpu.registers.x as Word;
+                        cpu.registers.a = mem.read_byte(zero_page_addr);
+                        cpu.lda_set_flags();
+                    },
+                    _ => panic!("Instruction not supported.")
+                }
+            },
+            Ins::JSR(a) => {
+                match a {
+                    Addressing::Absolute => {
+                        let sub_addr = cpu.fetch_word(mem);
+                        mem.write_word(cpu.sp as Word, cpu.pc - 1);
+                        cpu.pc = sub_addr;
+                    },
+                    _ => panic!("Instruction not supported.")
+                }
+            },
+        }
     }
 }
