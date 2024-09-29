@@ -1,13 +1,16 @@
 use crate::{Byte, Word};
-use crate::mem::{Addressing, Mem};
+use crate::mem::{Addr, Mem};
 use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
+#[derive(Clone)]
 pub struct CPU {
     /// Program counter.
     pub pc: Word,
     /// Stack pointer (should only be `Byte`, not a `Word`).
     pub sp: Byte,
+    /// Cycle count.
+    pub cycles: u32,
     // Registers.
     pub registers: Registers,
     // Status flags.
@@ -20,6 +23,7 @@ impl CPU {
             pc: 0xFFFC,
             // TODO: Check the initial sp address.
             sp: 0xFF,
+            cycles: 0,
             registers: Registers::new(),
             flags: StatusFlags::new(),
         }
@@ -28,6 +32,7 @@ impl CPU {
     pub fn reset(&mut self, mem: &mut Mem) {
         self.pc = 0xFFFC;
         self.sp = 0xFF;
+        self.cycles = 0;
         self.registers.clear();
         self.flags.clear();
         mem.init()
@@ -45,65 +50,71 @@ impl CPU {
         data
     }
 
-    pub fn lda_set_flags(&mut self) {
-        // Set if A = 0
-        self.flags.z = self.registers.a == 0;
-        // Set if bit 7 of A is set
-        self.flags.n = (self.registers.a & 0b10000000) > 0;
-    }
-
     pub fn execute(&mut self, mem: &mut Mem) {
         let ins_code = self.fetch_byte(mem);
         Ins::from_byte(ins_code).execute(self, mem);
     }
 }
 
+#[derive(Clone)]
 pub struct Registers {
-    pub a: Byte,
+    /// The 8-bit accumulator is used for all arithmetic and logical operations except
+    /// increments and decrements. The contents of the accumulator can be stored and
+    /// retrieved either from memory or the stack.
+    pub acc: Byte,
+    /// The 8-bit index register (X) is most commonly used to hold counters or offsets for
+    /// accessing memory. The value of the X register can be loaded and saved in memory,
+    /// compared with values held in memory, or incremented and decremented. This register
+    /// has one special function; it can be used to get a copy of the stack pointer or
+    /// change its value.
     pub x: Byte,
+    /// The Y register is similar to the X register in that it is available for holding
+    /// counter or offsets memory access and supports the same set of memory load, save
+    /// and compare operations, and increments and decrements. Unlike X, it has no special
+    /// functions.
     pub y: Byte,
 }
 
 impl Registers {
     fn new() -> Self {
         Registers {
-            a: 0,
+            acc: 0,
             x: 0,
             y: 0,
         }
     }
 
     fn clear(&mut self) {
-        self.a = 0;
+        self.acc = 0;
         self.x = 0;
         self.y = 0;
     }
 }
 
-#[derive(Debug, PartialEq, Default, DekuRead, DekuWrite)]
+#[derive(Debug, PartialEq, Clone, Default, DekuRead, DekuWrite)]
 #[deku(endian = "little")]
-struct StatusFlags {
+pub struct StatusFlags {
     /// Carry Flag.
     #[deku(bits = 1)]
-    c: bool,
+    pub c: bool,
     /// Zero Flag.
     #[deku(bits = 1)]
-    z: bool,
+    pub z: bool,
     /// Interrupt Disable.
     #[deku(bits = 1)]
-    i: bool,
+    pub i: bool,
     /// Decimal Mode Flag.
     #[deku(bits = 1)]
-    d: bool,
+    pub d: bool,
     /// Break Command.
     #[deku(bits = 1)]
-    b: bool,
+    pub b: bool,
     /// Overflow Flag.
     #[deku(bits = 1)]
-    v: bool,
+    pub v: bool,
     /// Negative Flag.
     #[deku(bits = 1)]
-    n: bool,
+    pub n: bool,
 }
 
 impl StatusFlags {
@@ -117,74 +128,87 @@ impl StatusFlags {
 }
 
 pub enum Ins {
-    LDA(Addressing),
-    JSR(Addressing)
+    /// Add with Carry. This instruction adds the contents of a memory location to the
+    /// accumulator together with the carry bit. If overflow occurs, the carry bit is set,
+    /// enabling multiple byte addition.
+    ADC(Addr),
+    /// Load Accummulator. Loads a byte of memory into the accumulator, setting the zero
+    /// and negative flags as appropriate.
+    LDA(Addr),
+    /// Jump to Subroutine.
+    JSR(Addr),
 }
 
 impl Ins {
     pub fn from_byte(code: Byte) -> Self {
         match code {
-            0x49 => Ins::LDA(Addressing::Immediate),
-            0xA5 => Ins::LDA(Addressing::ZeroPage),
-            0xB5 => Ins::LDA(Addressing::ZeroPageX),
-            0x20 => Ins::JSR(Addressing::Absolute),
+            0x49 => Ins::LDA(Addr::Immediate),
+            0xA5 => Ins::LDA(Addr::ZeroPage),
+            0xB5 => Ins::LDA(Addr::ZeroPageX),
+            0xAD => Ins::LDA(Addr::Absolute),
+            0x20 => Ins::JSR(Addr::Absolute),
             _ => panic!("Unable to identify instruction.")
         }
     }
 
     pub fn code(&self) -> Byte {
         match self {
-            Ins::LDA(a) => {
-                match a {
-                    Addressing::Immediate => 0x49,
-                    Addressing::ZeroPage => 0xA5,
-                    Addressing::ZeroPageX => 0xB5,
-                    _ => panic!("Instruction not supported.")
-                }
-            },
-            Ins::JSR(a) => {
-                match a {
-                    Addressing::Absolute => 0x20,
-                    _ => panic!("Instruction not supported.")
-                }
-            },
+            Ins::LDA(Addr::Immediate) => 0x49,
+            Ins::LDA(Addr::ZeroPage) => 0xA5,
+            Ins::LDA(Addr::ZeroPageX) => 0xB5,
+            Ins::LDA(Addr::Absolute) => 0xAD,
+            Ins::JSR(Addr::Absolute) => 0x20,
+            _ => panic!("Instruction not supported.")
         }
     }
 
     pub fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
         match self {
-            Ins::LDA(a) => {
-                match a {
-                    Addressing::Immediate => {
-                        let current_addr = cpu.fetch_byte(mem);
-                        cpu.registers.a = current_addr;
-                        cpu.lda_set_flags();
-                    },
-                    Addressing::ZeroPage => {
-                        // TODO: Check conversions between Byte and Word.
-                        let zero_page_addr = cpu.fetch_byte(mem);
-                        cpu.registers.a = mem.read_byte(zero_page_addr as Word);
-                        cpu.lda_set_flags();
-                    },
-                    Addressing::ZeroPageX => {
-                        let mut zero_page_addr = cpu.fetch_word(mem);
-                        zero_page_addr += cpu.registers.x as Word;
-                        cpu.registers.a = mem.read_byte(zero_page_addr);
-                        cpu.lda_set_flags();
-                    },
-                    _ => panic!("Instruction not supported.")
-                }
+            Ins::ADC(Addr::Immediate) => {
+                todo!()
             },
-            Ins::JSR(a) => {
-                match a {
-                    Addressing::Absolute => {
-                        let sub_addr = cpu.fetch_word(mem);
-                        mem.write_word(cpu.sp as Word, cpu.pc - 1);
-                        cpu.pc = sub_addr;
-                    },
-                    _ => panic!("Instruction not supported.")
-                }
+            Ins::LDA(Addr::Immediate) => {
+                let current_addr = cpu.fetch_byte(mem);
+                cpu.registers.acc = current_addr;
+                self.set_flags(cpu);
             },
+            Ins::LDA(Addr::ZeroPage) => {
+                let zero_page_addr = cpu.fetch_byte(mem);
+                cpu.registers.acc = mem.read_byte(zero_page_addr as Word);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::ZeroPageX) => {
+                let mut zero_page_addr = cpu.fetch_byte(mem);
+                zero_page_addr += cpu.registers.x;
+                cpu.registers.acc = mem.read_byte(zero_page_addr as Word);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::Absolute) => {
+                let address = cpu.fetch_word(mem);
+                cpu.registers.acc = mem.read_byte(address);
+                self.set_flags(cpu);
+            }
+            Ins::JSR(Addr::Absolute) => {
+                let sub_addr = cpu.fetch_word(mem);
+                mem.write_word(cpu.sp as Word, cpu.pc - 1);
+                cpu.pc = sub_addr;
+            },
+            _ => panic!("Instruction not supported.")
+        }
+    }
+
+    pub fn set_flags(&self, cpu: &mut CPU) {
+        match self {
+            Ins::ADC(_) => {
+                todo!()
+            }
+            Ins::LDA(_) => {
+                // Set if A = 0
+                cpu.flags.z = cpu.registers.acc == 0;
+                // Set if bit 7 of A is set
+                cpu.flags.n = (cpu.registers.acc & 0b10000000) > 0;
+            },
+            Ins::JSR(_) => todo!(),
         }
     }
 }
