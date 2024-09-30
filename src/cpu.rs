@@ -12,7 +12,7 @@ pub struct CPU {
     /// Cycle count.
     pub cycles: u32,
     // Registers.
-    pub registers: Registers,
+    pub reg: Registers,
     // Status flags.
     pub flags: StatusFlags,
 }
@@ -24,7 +24,7 @@ impl CPU {
             // TODO: Check the initial sp address.
             sp: 0xFF,
             cycles: 0,
-            registers: Registers::new(),
+            reg: Registers::new(),
             flags: StatusFlags::new(),
         }
     }
@@ -33,7 +33,7 @@ impl CPU {
         self.pc = 0xFFFC;
         self.sp = 0xFF;
         self.cycles = 0;
-        self.registers.clear();
+        self.reg.clear();
         self.flags.clear();
         mem.init()
     }
@@ -56,6 +56,14 @@ impl CPU {
     }
 }
 
+// TODO segregate functions into these to better represent the fetch-decode-execute cycle.
+/// Moves data and instructions between main memory and registers.
+pub struct ControlUnit;
+
+/// Arithmetic and Logic Unit. Performs all computation and comparison operations.
+pub struct ALU;
+
+/// Storage location that holds inputs and outputs for the ALU.
 #[derive(Clone)]
 pub struct Registers {
     /// The 8-bit accumulator is used for all arithmetic and logical operations except
@@ -135,6 +143,12 @@ pub enum Ins {
     /// Load Accummulator. Loads a byte of memory into the accumulator, setting the zero
     /// and negative flags as appropriate.
     LDA(Addr),
+    /// Load X Register. Loads a byte of memory into the X register, setting the zero and
+    /// negative flags as appropriate.
+    LDX(Addr),
+    /// Load Y Register. Loads a byte of memory into the Y register, setting the zero and
+    /// negative flags as appropriate.
+    LDY(Addr),
     /// Jump to Subroutine.
     JSR(Addr),
 }
@@ -146,6 +160,11 @@ impl Ins {
             0xA5 => Ins::LDA(Addr::ZeroPage),
             0xB5 => Ins::LDA(Addr::ZeroPageX),
             0xAD => Ins::LDA(Addr::Absolute),
+            0xBD => Ins::LDA(Addr::AbsoluteX),
+            0xB9 => Ins::LDA(Addr::AbsoluteY),
+            0xA1 => Ins::LDA(Addr::XIndirect),
+            0xB1 => Ins::LDA(Addr::IndirectY),
+            0xA2 => Ins::LDA(Addr::Immediate),
             0x20 => Ins::JSR(Addr::Absolute),
             _ => panic!("Unable to identify instruction.")
         }
@@ -157,6 +176,11 @@ impl Ins {
             Ins::LDA(Addr::ZeroPage) => 0xA5,
             Ins::LDA(Addr::ZeroPageX) => 0xB5,
             Ins::LDA(Addr::Absolute) => 0xAD,
+            Ins::LDA(Addr::AbsoluteX) => 0xBD,
+            Ins::LDA(Addr::AbsoluteY) => 0xB9,
+            Ins::LDA(Addr::XIndirect) => 0xA1,
+            Ins::LDA(Addr::IndirectY) => 0xB1,
+            Ins::LDX(Addr::Immediate) => 0xA2,
             Ins::JSR(Addr::Absolute) => 0x20,
             _ => panic!("Instruction not supported.")
         }
@@ -168,30 +192,57 @@ impl Ins {
                 todo!()
             },
             Ins::LDA(Addr::Immediate) => {
-                let current_addr = cpu.fetch_byte(mem);
-                cpu.registers.acc = current_addr;
+                let data = cpu.fetch_byte(mem);
+                cpu.reg.acc = data;
                 self.set_flags(cpu);
             },
             Ins::LDA(Addr::ZeroPage) => {
                 let zero_page_addr = cpu.fetch_byte(mem);
-                cpu.registers.acc = mem.read_byte(zero_page_addr as Word);
+                cpu.reg.acc = mem.read_byte(zero_page_addr as Word);
                 self.set_flags(cpu);
             },
             Ins::LDA(Addr::ZeroPageX) => {
                 let mut zero_page_addr = cpu.fetch_byte(mem);
-                zero_page_addr += cpu.registers.x;
-                cpu.registers.acc = mem.read_byte(zero_page_addr as Word);
+                zero_page_addr += cpu.reg.x;
+                cpu.reg.acc = mem.read_byte(zero_page_addr as Word);
                 self.set_flags(cpu);
             },
             Ins::LDA(Addr::Absolute) => {
                 let address = cpu.fetch_word(mem);
-                cpu.registers.acc = mem.read_byte(address);
+                cpu.reg.acc = mem.read_byte(address);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::AbsoluteX) => {
+                let mut address = cpu.fetch_word(mem);
+                address += cpu.reg.x as Word;
+                cpu.reg.acc = mem.read_byte(address);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::AbsoluteY) => {
+                let mut address = cpu.fetch_word(mem);
+                address += cpu.reg.y as Word;
+                cpu.reg.acc = mem.read_byte(address);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::XIndirect) => {
+                let mut ptr = cpu.fetch_byte(mem);
+                ptr += cpu.reg.x;
+                let address = mem.read_word(ptr as Word);
+                cpu.reg.acc = mem.read_byte(address);
+                self.set_flags(cpu);
+            },
+            Ins::LDA(Addr::IndirectY) => {
+                let ptr = cpu.fetch_byte(mem);
+                let mut address = mem.read_word(ptr as Word);
+                address += cpu.reg.y as Word;
+                cpu.reg.acc = mem.read_byte(address);
                 self.set_flags(cpu);
             }
             Ins::JSR(Addr::Absolute) => {
                 let sub_addr = cpu.fetch_word(mem);
                 mem.write_word(cpu.sp as Word, cpu.pc - 1);
                 cpu.pc = sub_addr;
+                // TODO set flags
             },
             _ => panic!("Instruction not supported.")
         }
@@ -204,10 +255,12 @@ impl Ins {
             }
             Ins::LDA(_) => {
                 // Set if A = 0
-                cpu.flags.z = cpu.registers.acc == 0;
+                cpu.flags.z = cpu.reg.acc == 0;
                 // Set if bit 7 of A is set
-                cpu.flags.n = (cpu.registers.acc & 0b10000000) > 0;
+                cpu.flags.n = (cpu.reg.acc & 0b10000000) > 0;
             },
+            Ins::LDX(_) => todo!(),
+            Ins::LDY(_) => todo!(),
             Ins::JSR(_) => todo!(),
         }
     }

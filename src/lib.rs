@@ -21,7 +21,7 @@ mod tests {
         mem.write_byte(0xFFFD, 0x84);
         cpu.execute(&mut mem);
 
-        assert_eq!(cpu.registers.acc, 0x84);
+        assert_eq!(cpu.reg.acc, 0x84);
 
         assert_eq!(cpu.flags.c, cpu_start.flags.c);
         assert_eq!(cpu.flags.z, false);
@@ -44,7 +44,7 @@ mod tests {
         mem.write_byte(0x0042, 0x84);
         cpu.execute(&mut mem);
 
-        assert_eq!(cpu.registers.acc, 0x84);
+        assert_eq!(cpu.reg.acc, 0x84);
 
         // TODO check flags
         assert_eq!(cpu.flags.c, cpu_start.flags.c);
@@ -62,13 +62,13 @@ mod tests {
         let mut mem = Mem::new();
 
         cpu.reset(&mut mem);
-        cpu.registers.acc = 0x12;
+        cpu.reg.x = 0x12;
         mem.write_byte(0xFFFC, Ins::LDA(Addr::ZeroPageX).code());
         mem.write_byte(0xFFFD, 0x42);
-        mem.write_byte(0x0042, 0x85);
+        mem.write_byte(0x0042 + 0x0012, 0x85);
         cpu.execute(&mut mem);
 
-        assert_eq!(cpu.registers.acc, 0x85 + 0x12);
+        assert_eq!(cpu.reg.acc, 0x85);
 
         // TODO test flags
     }
@@ -85,7 +85,85 @@ mod tests {
         mem.write_byte(0x4480, 0x37);
         cpu.execute(&mut mem);
 
-        assert_eq!(cpu.registers.acc, 0x37);
+        assert_eq!(cpu.reg.acc, 0x37);
+
+        // TODO test flags
+
+    }
+
+    #[test]
+    fn ins_lda_absx() {
+        let mut cpu = CPU::new();
+        let mut mem = Mem::new();
+
+        cpu.reset(&mut mem);
+        cpu.reg.x = 0x12;
+        mem.write_byte(0xFFFC, Ins::LDA(Addr::AbsoluteX).code());
+        mem.write_byte(0xFFFD, 0x00);
+        mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+        mem.write_byte(0x4412, 0x37);
+        cpu.execute(&mut mem);
+
+        assert_eq!(cpu.reg.acc, 0x37);
+
+        // TODO test flags
+
+    }
+
+    #[test]
+    fn ins_lda_absy() {
+        let mut cpu = CPU::new();
+        let mut mem = Mem::new();
+
+        cpu.reset(&mut mem);
+        cpu.reg.y = 0x12;
+        mem.write_byte(0xFFFC, Ins::LDA(Addr::AbsoluteY).code());
+        mem.write_byte(0xFFFD, 0x00);
+        mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+        mem.write_byte(0x4412, 0x37);
+        cpu.execute(&mut mem);
+
+        assert_eq!(cpu.reg.acc, 0x37);
+
+        // TODO test flags
+    }
+
+    #[test]
+    fn ins_lda_indx() {
+        let mut cpu = CPU::new();
+        let mut mem = Mem::new();
+
+        cpu.reset(&mut mem);
+        cpu.reg.x = 0x04;
+        mem.write_byte(0xFFFC, Ins::LDA(Addr::XIndirect).code());
+        mem.write_byte(0xFFFD, 0x02); // 0x02 + 0x04 = 0x06
+        mem.write_byte(0x0006, 0x00);
+        mem.write_byte(0x0007, 0x80); // 0x8000 (LE)
+        mem.write_byte(0x8000, 0x37);
+        cpu.execute(&mut mem);
+
+        assert_eq!(cpu.reg.acc, 0x37);
+
+        // TODO test flags
+    }
+
+    #[test]
+    fn ins_lda_indy() {
+        let mut cpu = CPU::new();
+        let mut mem = Mem::new();
+
+        cpu.reset(&mut mem);
+        cpu.reg.y = 0x04;
+        mem.write_byte(0xFFFC, Ins::LDA(Addr::IndirectY).code());
+        mem.write_byte(0xFFFD, 0x02);
+        mem.write_byte(0x0002, 0x00);
+        mem.write_byte(0x0003, 0x80); // 0x8000 (LE)
+        mem.write_byte(0x8004, 0x37); // 0x8000 + 0x0004
+        cpu.execute(&mut mem);
+
+        assert_eq!(cpu.reg.acc, 0x37);
+
+        // TODO test flags
     }
 
     #[test]

@@ -82,7 +82,18 @@ pub enum Addr {
     /// `STA $2000,Y` instruction will store the accumulator at `0x2092` (i.e. `0x2000 +
     /// 0x92`).
     AbsoluteY,
+    /// Data is accessed using a pointer. The 16-bit address of the pointer is given in
+    /// the two bytes following the opcode.
     Indirect,
-    IndexedIndirect,
-    IndirectIndexed,
+    /// An 8-bit zero-page address and the X register are added, without carry (if the
+    /// addition overflows, the address wraps around within page 0). The resulting address
+    /// is used as a pointer to the data being accessed. Note that, effectively, this
+    /// makes the X register an index into a list of pointers. Also note that pointers
+    /// are two bytes long, so the X register should be an even number when accessing a
+    /// list of pointers (otherwise you'll get half of one pointer and half of another).
+    XIndirect,
+    /// An 8-bit address identifies a pointer. The value of the Y register is added to the
+    /// address contained in the pointer. Effectively, the pointer is the base address
+    /// and the Y register is an index past that base address.
+    IndirectY,
 }
