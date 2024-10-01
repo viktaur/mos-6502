@@ -12,9 +12,9 @@ impl Instruction for BRK {
             BRK(Addr::Implicit) => {
                 cpu.flags.b = true;
 
-                // TODO push the pc and processor status onto the stack. Check that the
+                // TODO push the pc and processor status onto the stack. Check if the
                 // following is correct.
-                cpu.jump_to(0xFFFE);
+                cpu.pc = 0xFFFE;
                 // Terminate the execution.
                 std::process::exit(0);
             },

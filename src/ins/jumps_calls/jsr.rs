@@ -6,11 +6,14 @@ pub struct JSR(pub Addr);
 impl Instruction for JSR {
     fn execute(&self, cpu: &mut CPU) {
         match self {
+            // 3B, 6C
             JSR(Addr::Absolute) => {
-                let sub_addr = cpu.read_word();
-
-                mem.write_word(cpu.sp as Word, cpu.pc - 1);
+                let sub_addr = cpu.read_word(cpu.pc + 1);
+                // Save the previous pc on the stack so we can come back to it.
+                // cpu.write_word(cpu.sp as Word, cpu.pc);
                 cpu.pc = sub_addr;
+                // TODO check if increasing the stack pointer is the right thing to do.
+                // cpu.sp += 1;
             },
             _ => panic!("Addressing method not supported.")
         }
@@ -36,11 +39,12 @@ mod tests {
 
         cpu.reset();
         cpu.mem.write_byte(0xFFFC, JSR(Addr::Absolute).code());
-        cpu.mem.write_byte(0xFFFD, 0x42);
-        cpu.mem.write_byte(0xFFFE, 0x42);
+        cpu.mem.write_byte(0xFFFD, 0x32);
+        cpu.mem.write_byte(0xFFFE, 0x42); // 0x4232 (LE)
         cpu.start();
 
-        assert_eq!(cpu.pc, 0x4242);
+        // assert_eq!(cpu.sp, 0xFFFC);
+        assert_eq!(cpu.pc, 0x4232);
 
         // TODO test flags
     }

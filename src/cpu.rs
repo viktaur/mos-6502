@@ -49,35 +49,25 @@ impl CPU {
 
     /// Read the specified memory cell.
     pub fn read_byte(&self, address: Word) -> Byte {
-        // let data: Byte = self.mem.read_byte(self.pc);
-        // self.pc += 1;
         self.mem.read_byte(address)
     }
 
-    /// Read the next two memory cells and update the program counter.
+    /// Read the next two memory cells.
     pub fn read_word(&self, address: Word) -> Word {
-        // let data = self.mem.read_word(self.pc);
-        // self.pc += 2;
         self.mem.read_word(address)
     }
 
     pub fn write_byte(&mut self, address: Word, data: Byte) {
         self.mem.write_byte(address, data);
-        // self.pc += 1;
     }
 
     pub fn write_word(&mut self, address: Word, data: Word) {
         self.mem.write_word(address, data);
-        // self.pc += 2;
-    }
-
-    pub fn jump_to(&mut self, address: Word) {
-        self.pc = address;
     }
 
     /// Starts the fetch-decode-execute cycle.
     pub fn start(&mut self) {
-        loop {
+        // loop {
             self
                 // Fetch the next instruction code from memory.
                 .fetch()
@@ -85,7 +75,7 @@ impl CPU {
                 .decode()
                 // Execute the instruction in our CPU.
                 .execute(self)
-        }
+        // }
     }
 }
 

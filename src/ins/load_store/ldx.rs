@@ -14,30 +14,36 @@ impl LDX {
 impl Instruction for LDX {
     fn execute(&self, cpu: &mut CPU) {
         match self {
-            // 2 bytes
+            // 2B, 2C
             LDX(Addr::Immediate) => {
                 cpu.reg.x = cpu.read_byte(cpu.pc + 1);
                 cpu.pc += 2;
             },
-            // 2 bytes
+            // 2B, 3C
             LDX(Addr::ZeroPage) => {
                 let zp_addr = cpu.read_byte(cpu.pc + 1);
                 cpu.reg.x = cpu.read_byte(zp_addr as Word);
+                cpu.pc += 2;
             },
-            // 2 bytes
+            // 2B, 4C
             LDX(Addr::ZeroPageY) => {
                 let mut zp_addr = cpu.read_byte(cpu.pc + 1);
                 zp_addr += cpu.reg.y;
-                cpu.reg.y = mem.read_byte(zp_addr as Word);
+                cpu.reg.y = cpu.read_byte(zp_addr as Word);
+                cpu.pc += 2;
             },
+            // 3B, 4C
             LDX(Addr::Absolute) => {
-                let addr = cpu.read_word(mem);
-                cpu.reg.x = mem.read_byte(addr);
+                let addr = cpu.read_word(cpu.pc + 1);
+                cpu.reg.x = cpu.read_byte(addr);
+                cpu.pc += 3;
             },
+            // 3B, 4C (+1 if page crossed)
             LDX(Addr::AbsoluteY) => {
-                let mut addr = cpu.read_word(mem);
+                let mut addr = cpu.read_word(cpu.pc + 1);
                 addr += cpu.reg.y as Word;
-                cpu.reg.x = mem.read_byte(addr);
+                cpu.reg.x = cpu.read_byte(addr);
+                cpu.pc += 3;
             }
             _ => panic!("Operation not supported!")
         }
