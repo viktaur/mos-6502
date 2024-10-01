@@ -5,12 +5,17 @@ use crate::{Byte, Word};
 /// negative flags as appropriate.
 pub struct LDA(Addr);
 
+impl LDA {
+    fn set_flags(&self, cpu: &mut CPU) {
+        todo!()
+    }
+}
+
 impl Instruction for LDA {
     fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
         match self {
             LDA(Addr::Immediate) => {
-                let data = cpu.fetch_byte(mem);
-                cpu.reg.acc = data;
+                cpu.reg.acc = cpu.fetch_byte(mem);
                 self.set_flags(cpu);
             },
             LDA(Addr::ZeroPage) => {
@@ -85,12 +90,6 @@ impl Instruction for LDA {
             0xB1 => LDA(Addr::IndirectY),
             _ => panic!("Unable to identify instruction.")
         }
-    }
-}
-
-impl LDA {
-    fn set_flags(&self, cpu: &mut CPU) {
-        todo!()
     }
 }
 
