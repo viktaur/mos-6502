@@ -1,13 +1,14 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Mem}};
+use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
 use crate::{Byte, Word};
 
 pub struct JSR(pub Addr);
 
 impl Instruction for JSR {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+    fn execute(&self, cpu: &mut CPU) {
         match self {
             JSR(Addr::Absolute) => {
-                let sub_addr = cpu.read_word(mem);
+                let sub_addr = cpu.read_word();
+
                 mem.write_word(cpu.sp as Word, cpu.pc - 1);
                 cpu.pc = sub_addr;
             },
@@ -27,18 +28,17 @@ impl Instruction for JSR {
 mod tests {
     use super::*;
     use crate::cpu::CPU;
-    use crate::mem::{Mem, Addr};
+    use crate::mem::Addr;
 
     #[test]
     fn jsr_absolute() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
-        mem.write_byte(0xFFFC, JSR(Addr::Absolute).code());
-        mem.write_byte(0xFFFD, 0x42);
-        mem.write_byte(0xFFFE, 0x42);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.mem.write_byte(0xFFFC, JSR(Addr::Absolute).code());
+        cpu.mem.write_byte(0xFFFD, 0x42);
+        cpu.mem.write_byte(0xFFFE, 0x42);
+        cpu.start();
 
         assert_eq!(cpu.pc, 0x4242);
 

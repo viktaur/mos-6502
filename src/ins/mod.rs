@@ -1,7 +1,8 @@
 use load_store::{lda::LDA, ldx::LDX, ldy::LDY};
 use jumps_calls::jsr::JSR;
+use sys_funcs::brk::BRK;
 
-use crate::mem::{Mem, Addr};
+use crate::mem::{Memory, Addr};
 use crate::cpu::CPU;
 use crate::{Byte, Word};
 
@@ -18,7 +19,7 @@ pub mod sys_funcs;
 pub mod transfers;
 
 pub trait Instruction {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem);
+    fn execute(&self, cpu: &mut CPU);
 
     fn code(&self) -> Byte;
 }
@@ -47,7 +48,19 @@ impl InstructionDecoder {
             0xAC => Box::new(LDY(Addr::Absolute)),
             0xBC => Box::new(LDY(Addr::AbsoluteX)),
             0x20 => Box::new(JSR(Addr::Absolute)),
+            0x00 => Box::new(BRK(Addr::Implicit)),
             _ => panic!()
         }
+    }
+}
+
+pub trait DecodeIns {
+    /// Decode instruction.
+    fn decode(self) -> Box<dyn Instruction>;
+}
+
+impl DecodeIns for Byte {
+    fn decode(self) -> Box<dyn Instruction> {
+        InstructionDecoder::from_byte(self)
     }
 }

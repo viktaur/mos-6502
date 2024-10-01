@@ -1,6 +1,6 @@
 use crate::{Byte, Word};
-use crate::mem::{Addr, Mem};
-use crate::ins::{Instruction, InstructionDecoder};
+use crate::mem::{Addr, Memory};
+use crate::ins::{Instruction, InstructionDecoder, DecodeIns};
 use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
@@ -12,9 +12,11 @@ pub struct CPU {
     pub sp: Byte,
     /// Cycle count.
     pub cycles: u32,
-    // Registers.
+    /// Memory.
+    pub mem: Memory,
+    /// Registers.
     pub reg: Registers,
-    // Status flags.
+    /// Status flags.
     pub flags: StatusFlags,
 }
 
@@ -25,59 +27,67 @@ impl CPU {
             // TODO: Check the initial sp address.
             sp: 0xFF,
             cycles: 0,
+            mem: Memory::new(),
             reg: Registers::new(),
             flags: StatusFlags::new(),
         }
     }
 
-    pub fn reset(&mut self, mem: &mut Mem) {
+    pub fn reset(&mut self) {
         self.pc = 0xFFFC;
         self.sp = 0xFF;
         self.cycles = 0;
         self.reg.clear();
         self.flags.clear();
-        mem.init()
+        self.mem.init()
     }
 
-    /// Fetch instruction.
-    pub fn fetch(&mut self, mem: &mut Mem) -> Byte {
-        self.read_byte(mem)
+    /// Fetch the next instruction from memory.
+    pub fn fetch(&mut self) -> Byte {
+        self.read_byte(self.pc)
     }
 
-    /// Read the next memory cell and update the program counter.
-    pub fn read_byte(&mut self, mem: &mut Mem) -> Byte {
-        let data: Byte = mem.read_byte(self.pc);
-        self.pc += 1;
-        data
+    /// Read the specified memory cell.
+    pub fn read_byte(&self, address: Word) -> Byte {
+        // let data: Byte = self.mem.read_byte(self.pc);
+        // self.pc += 1;
+        self.mem.read_byte(address)
     }
 
     /// Read the next two memory cells and update the program counter.
-    pub fn read_word(&mut self, mem: &mut Mem) -> Word {
-        let data = mem.read_word(self.pc);
-        self.pc += 2;
-        data
+    pub fn read_word(&self, address: Word) -> Word {
+        // let data = self.mem.read_word(self.pc);
+        // self.pc += 2;
+        self.mem.read_word(address)
     }
 
-    pub fn write_byte(&mut self, data: Byte, mem: &mut Mem) {
-        todo!()
+    pub fn write_byte(&mut self, address: Word, data: Byte) {
+        self.mem.write_byte(address, data);
+        // self.pc += 1;
     }
 
-    pub fn write_word(&mut self, data: Word, mem: &mut Mem) {
-        todo!()
+    pub fn write_word(&mut self, address: Word, data: Word) {
+        self.mem.write_word(address, data);
+        // self.pc += 2;
     }
 
-    pub fn start(&mut self, mem: &mut Mem) {
-        let ins_code = self.read_byte(mem);
-        InstructionDecoder::from_byte(ins_code).execute(self, mem);
+    pub fn jump_to(&mut self, address: Word) {
+        self.pc = address;
+    }
+
+    /// Starts the fetch-decode-execute cycle.
+    pub fn start(&mut self) {
+        loop {
+            self
+                // Fetch the next instruction code from memory.
+                .fetch()
+                // Identify the instruction from the code retrieved.
+                .decode()
+                // Execute the instruction in our CPU.
+                .execute(self)
+        }
     }
 }
-
-// TODO segregate functions into these to better represent the fetch-decode-execute cycle.
-/// Moves data and instructions between main memory and registers.
-pub struct ControlUnit;
-
-/// Arithmetic and Logic Unit. Performs all computation and comparison operations.
-pub struct ALU;
 
 /// Storage location that holds inputs and outputs for the ALU.
 #[derive(Clone)]

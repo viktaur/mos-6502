@@ -1,4 +1,4 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Mem}};
+use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
 use crate::{Byte, Word};
 
 /// Load Accummulator. Loads a byte of memory into the accumulator, setting the zero and
@@ -12,36 +12,36 @@ impl LDX {
 }
 
 impl Instruction for LDX {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+    fn execute(&self, cpu: &mut CPU) {
         match self {
+            // 2 bytes
             LDX(Addr::Immediate) => {
-                cpu.reg.x = cpu.read_byte(mem);
-                self.set_flags(cpu);
+                cpu.reg.x = cpu.read_byte(cpu.pc + 1);
+                cpu.pc += 2;
             },
+            // 2 bytes
             LDX(Addr::ZeroPage) => {
-                let zp_addr = cpu.read_byte(mem);
-                cpu.reg.x = mem.read_byte(zp_addr as Word);
-                self.set_flags(cpu);
+                let zp_addr = cpu.read_byte(cpu.pc + 1);
+                cpu.reg.x = cpu.read_byte(zp_addr as Word);
             },
+            // 2 bytes
             LDX(Addr::ZeroPageY) => {
-                let mut zp_addr = cpu.read_byte(mem);
+                let mut zp_addr = cpu.read_byte(cpu.pc + 1);
                 zp_addr += cpu.reg.y;
                 cpu.reg.y = mem.read_byte(zp_addr as Word);
-                self.set_flags(cpu);
             },
             LDX(Addr::Absolute) => {
                 let addr = cpu.read_word(mem);
                 cpu.reg.x = mem.read_byte(addr);
-                self.set_flags(cpu);
             },
             LDX(Addr::AbsoluteY) => {
                 let mut addr = cpu.read_word(mem);
                 addr += cpu.reg.y as Word;
                 cpu.reg.x = mem.read_byte(addr);
-                self.set_flags(cpu);
             }
             _ => panic!("Operation not supported!")
         }
+        self.set_flags(cpu);
     }
 
     fn code(&self) -> Byte {

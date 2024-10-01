@@ -5,13 +5,14 @@ use crate::{Byte, Word};
 // memory location should be a `Word`.
 const MAX_MEM: usize = 1024 * 64;
 
-pub struct Mem {
+#[derive(Clone)]
+pub struct Memory {
     data: [Byte; MAX_MEM]
 }
 
-impl Mem {
+impl Memory {
     pub fn new() -> Self {
-        Mem {
+        Memory {
             data: [0; MAX_MEM]
         }
     }
@@ -26,16 +27,16 @@ impl Mem {
         value
     }
 
-    /// Write a byte to memory, either statically or dynamically by the CPU.
-    pub fn write_byte(&mut self, address: Word, value: Byte) {
-        self.data[address as usize] = value;
-    }
-
     /// Read a word from memory, either statically or dynamically by the CPU.
     pub fn read_word(&self, address: Word) -> Word {
         let mut data = self.read_byte(address) as Word;
         data |= (self.read_byte(address + 1) as Word) << 8;
         data
+    }
+
+    /// Write a byte to memory, either statically or dynamically by the CPU.
+    pub fn write_byte(&mut self, address: Word, value: Byte) {
+        self.data[address as usize] = value;
     }
 
     /// Write a word to memory, either statically or dynamically by the CPU.

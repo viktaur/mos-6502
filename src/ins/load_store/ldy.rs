@@ -1,4 +1,4 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Mem}};
+use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
 use crate::{Byte, Word};
 
 /// Load Accummulator. Loads a byte of memory into the accumulator, setting the zero and
@@ -12,7 +12,7 @@ impl LDY {
 }
 
 impl Instruction for LDY {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+    fn execute(&self, cpu: &mut CPU, mem: &mut Memory) {
         match self {
             LDY(Addr::Immediate) => {
                 cpu.reg.y = cpu.read_byte(mem);

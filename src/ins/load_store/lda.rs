@@ -1,4 +1,4 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Mem}};
+use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
 use crate::{Byte, Word};
 
 /// Load Accummulator. Loads a byte of memory into the accumulator, setting the zero and
@@ -15,32 +15,37 @@ impl LDA {
 }
 
 impl Instruction for LDA {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+    fn execute(&self, cpu: &mut CPU) {
         match self {
             LDA(Addr::Immediate) => {
-                cpu.reg.acc = cpu.read_byte(mem);
+                cpu.reg.acc = cpu.read_byte();
             },
             LDA(Addr::ZeroPage) => {
                 let zp_addr = cpu.read_byte(mem);
-                cpu.reg.acc = mem.read_byte(zp_addr as Word);
+                cpu.jump_to(zp_addr as Word);
+                cpu.reg.acc = cpu.read_byte(mem);
             },
             LDA(Addr::ZeroPageX) => {
                 let mut zp_addr = cpu.read_byte(mem);
                 zp_addr = zp_addr.wrapping_add(cpu.reg.x);
-                cpu.reg.acc = mem.read_byte(zp_addr as Word);
+                cpu.jump_to(zp_addr as Word);
+                cpu.reg.acc = cpu.read_byte(mem);
             },
             LDA(Addr::Absolute) => {
                 let address = cpu.read_word(mem);
-                cpu.reg.acc = mem.read_byte(address);
+                cpu.jump_to(address);
+                cpu.reg.acc = cpu.read_byte(mem);
             },
             LDA(Addr::AbsoluteX) => {
                 let mut address = cpu.read_word(mem);
                 address += cpu.reg.x as Word;
-                cpu.reg.acc = mem.read_byte(address);
+                cpu.jump_to(address);
+                cpu.reg.acc = cpu.read_byte(mem);
             },
             LDA(Addr::AbsoluteY) => {
                 let mut address = cpu.read_word(mem);
                 address += cpu.reg.y as Word;
+                cpu.jump_to(address);
                 cpu.reg.acc = mem.read_byte(address);
             },
             LDA(Addr::XIndirect) => {
@@ -79,18 +84,17 @@ impl Instruction for LDA {
 mod tests {
     use super::*;
     use crate::cpu::CPU;
-    use crate::mem::{Mem, Addr};
+    use crate::mem::{Memory, Addr};
 
     #[test]
     fn lda_immediate() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
         let cpu_start = cpu.clone();
 
-        cpu.reset(&mut mem);
-        mem.write_byte(0xFFFC, LDA(Addr::Immediate).code());
-        mem.write_byte(0xFFFD, 0x84);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::Immediate).code());
+        cpu.mem.write_byte(0xFFFD, 0x84);
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x84);
 
@@ -106,14 +110,13 @@ mod tests {
     #[test]
     fn lda_zero_page() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
         let cpu_start = cpu.clone();
 
-        cpu.reset(&mut mem);
-        mem.write_byte(0xFFFC, LDA(Addr::ZeroPage).code());
-        mem.write_byte(0xFFFD, 0x42);
-        mem.write_byte(0x0042, 0x84);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::ZeroPage).code());
+        cpu.mem.write_byte(0xFFFD, 0x42);
+        cpu.mem.write_byte(0x0042, 0x84);
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x84);
 
@@ -130,14 +133,13 @@ mod tests {
     #[test]
     fn lda_zero_page_x() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
-        cpu.reg.x = 0x12;
-        mem.write_byte(0xFFFC, LDA(Addr::ZeroPageX).code());
-        mem.write_byte(0xFFFD, 0x42);
-        mem.write_byte(0x0042 + 0x0012, 0x85);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.reg.x = 0x02;
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::ZeroPageX).code());
+        cpu.mem.write_byte(0xFFFD, 0xFF);
+        cpu.mem.write_byte(0x01, 0x85); // 0xFF + 0x02 mod 256 = 0x01
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x85);
 
@@ -147,14 +149,13 @@ mod tests {
     #[test]
     fn lda_absolute() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
-        mem.write_byte(0xFFFC, LDA(Addr::Absolute).code());
-        mem.write_byte(0xFFFD, 0x80);
-        mem.write_byte(0xFFFE, 0x44); // 0x4480 (LE)
-        mem.write_byte(0x4480, 0x37);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.mem.write_byte(0xFFFD, 0x80);
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::Absolute).code());
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4480 (LE)
+        cpu.mem.write_byte(0x4480, 0x37);
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
@@ -165,15 +166,14 @@ mod tests {
     #[test]
     fn lda_absolute_x() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
+        cpu.reset();
         cpu.reg.x = 0x12;
-        mem.write_byte(0xFFFC, LDA(Addr::AbsoluteX).code());
-        mem.write_byte(0xFFFD, 0x00);
-        mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
-        mem.write_byte(0x4412, 0x37);
-        cpu.start(&mut mem);
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::AbsoluteX).code());
+        cpu.mem.write_byte(0xFFFD, 0x00);
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+        cpu.mem.write_byte(0x4412, 0x37);
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
@@ -184,15 +184,14 @@ mod tests {
     #[test]
     fn lda_absolute_y() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
+        cpu.reset();
         cpu.reg.y = 0x12;
-        mem.write_byte(0xFFFC, LDA(Addr::AbsoluteY).code());
-        mem.write_byte(0xFFFD, 0x00);
-        mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
-        mem.write_byte(0x4412, 0x37);
-        cpu.start(&mut mem);
+        cpu.mem.write_byte(0xFFFC, LDA(Addr::AbsoluteY).code());
+        cpu.mem.write_byte(0xFFFD, 0x00);
+        cpu.mem.write_byte(0x4412, 0x37);
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+        cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
@@ -202,7 +201,7 @@ mod tests {
     #[test]
     fn lda_x_indirect() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
+        let mut mem = Memory::new();
 
         cpu.reset(&mut mem);
         cpu.reg.x = 0x04;
@@ -221,7 +220,7 @@ mod tests {
     #[test]
     fn lda_indirect_y() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
+        let mut mem = Memory::new();
 
         cpu.reset(&mut mem);
         cpu.reg.y = 0x04;
