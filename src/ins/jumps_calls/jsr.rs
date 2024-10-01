@@ -1,15 +1,19 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Mem}};
+use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
 use crate::{Byte, Word};
 
 pub struct JSR(pub Addr);
 
 impl Instruction for JSR {
-    fn execute(&self, cpu: &mut CPU, mem: &mut Mem) {
+    fn execute(&self, cpu: &mut CPU) {
         match self {
+            // 3B, 6C
             JSR(Addr::Absolute) => {
-                let sub_addr = cpu.read_word(mem);
-                mem.write_word(cpu.sp as Word, cpu.pc - 1);
+                let sub_addr = cpu.read_word(cpu.pc + 1);
+                // Save the previous pc on the stack so we can come back to it.
+                // cpu.write_word(cpu.sp as Word, cpu.pc);
                 cpu.pc = sub_addr;
+                // TODO check if increasing the stack pointer is the right thing to do.
+                // cpu.sp += 1;
             },
             _ => panic!("Addressing method not supported.")
         }
@@ -27,20 +31,20 @@ impl Instruction for JSR {
 mod tests {
     use super::*;
     use crate::cpu::CPU;
-    use crate::mem::{Mem, Addr};
+    use crate::mem::Addr;
 
     #[test]
     fn jsr_absolute() {
         let mut cpu = CPU::new();
-        let mut mem = Mem::new();
 
-        cpu.reset(&mut mem);
-        mem.write_byte(0xFFFC, JSR(Addr::Absolute).code());
-        mem.write_byte(0xFFFD, 0x42);
-        mem.write_byte(0xFFFE, 0x42);
-        cpu.start(&mut mem);
+        cpu.reset();
+        cpu.mem.write_byte(0xFFFC, JSR(Addr::Absolute).code());
+        cpu.mem.write_byte(0xFFFD, 0x32);
+        cpu.mem.write_byte(0xFFFE, 0x42); // 0x4232 (LE)
+        cpu.start();
 
-        assert_eq!(cpu.pc, 0x4242);
+        // assert_eq!(cpu.sp, 0xFFFC);
+        assert_eq!(cpu.pc, 0x4232);
 
         // TODO test flags
     }
