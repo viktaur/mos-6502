@@ -1,6 +1,6 @@
 use crate::{Byte, Word};
 use crate::mem::{Addr, Mem};
-use crate::ins::Ins;
+use crate::ins::{Instruction, InstructionDecoder};
 use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
@@ -39,21 +39,36 @@ impl CPU {
         mem.init()
     }
 
-    pub fn fetch_byte(&mut self, mem: &mut Mem) -> Byte {
+    /// Fetch instruction.
+    pub fn fetch(&mut self, mem: &mut Mem) -> Byte {
+        self.read_byte(mem)
+    }
+
+    /// Read the next memory cell and update the program counter.
+    pub fn read_byte(&mut self, mem: &mut Mem) -> Byte {
         let data: Byte = mem.read_byte(self.pc);
         self.pc += 1;
         data
     }
 
-    pub fn fetch_word(&mut self, mem: &mut Mem) -> Word {
+    /// Read the next two memory cells and update the program counter.
+    pub fn read_word(&mut self, mem: &mut Mem) -> Word {
         let data = mem.read_word(self.pc);
         self.pc += 2;
         data
     }
 
-    pub fn execute(&mut self, mem: &mut Mem) {
-        let ins_code = self.fetch_byte(mem);
-        Ins::from_byte(ins_code).execute(self, mem);
+    pub fn write_byte(&mut self, data: Byte, mem: &mut Mem) {
+        todo!()
+    }
+
+    pub fn write_word(&mut self, data: Word, mem: &mut Mem) {
+        todo!()
+    }
+
+    pub fn start(&mut self, mem: &mut Mem) {
+        let ins_code = self.read_byte(mem);
+        InstructionDecoder::from_byte(ins_code).execute(self, mem);
     }
 }
 
