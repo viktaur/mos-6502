@@ -6,12 +6,13 @@ memory space (using 16-bit address words).
 Given its relatively simple design, the 6502 is a fantastic architecture to learn how CPUs
 actually work and how they can be emulated.
 
-![6502 processor in a DIP-40 plastic package.](https://upload.wikimedia.org/wikipedia/commons/4/49/MOS_6502AD_4585_top.jpg)
-![6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components](https://upload.wikimedia.org/wikipedia/commons/f/fb/BreakNES_MOS_6502.jpg)
+<img src="https://github.com/user-attachments/assets/d5dd902d-df3b-4e54-8b87-991bec17b23f" alt="6502 processor in a DIP-40 plastic package" width="400"/>
+<br></br>
+<img src="https://github.com/user-attachments/assets/c494bfde-e476-4073-b2b9-84872a9f4da9" alt="6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components" width="600"/>
 
 ## Instruction set
 The following is the complete set of instructions supported by the 6502 and whether they
-have been implemented in this project.
+have been implemented in this project yet.
 
 ### Load/Store operations
 - [x] [LDA - Load Accumulator](src/ins/load_store/lda.rs)
