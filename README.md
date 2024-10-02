@@ -18,9 +18,9 @@ have been implemented in this project yet.
 - [x] [LDA - Load Accumulator](src/ins/load_store/lda.rs)
 - [x] [LDX - Load X Register](src/ins/load_store/ldx.rs)
 - [x] [LDY - Load Y Register](src/ins/load_store/ldy.rs)
-- [ ] STA - Store Accumulator
-- [ ] STX - Store X Register
-- [ ] STY - Store Y Register
+- [x] [STA - Store Accumulator](src/ins/load_store/sta.rs)
+- [x] [STX - Store X Register](src/ins/load_store/stx.rs)
+- [x] [STY - Store Y Register](src/ins/load_store/sty.rs)
 
 ### Register Transfers
 - [ ] TAX - Transfer accumulator to X
