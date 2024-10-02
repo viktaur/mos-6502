@@ -1,6 +1,6 @@
 use crate::{Byte, Word};
-use crate::mem::{Addr, Memory};
-use crate::ins::{Instruction, InstructionDecoder, DecodeIns};
+use crate::mem::Memory;
+use crate::ins::DecodeIns;
 use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
@@ -47,20 +47,22 @@ impl CPU {
         self.read_byte(self.pc)
     }
 
-    /// Read the specified memory cell.
+    /// Read a byte from the specified address.
     pub fn read_byte(&self, address: Word) -> Byte {
         self.mem.read_byte(address)
     }
 
-    /// Read the next two memory cells.
+    /// Read a word from the specified address.
     pub fn read_word(&self, address: Word) -> Word {
         self.mem.read_word(address)
     }
 
+    /// Write a byte of data to the specified address.
     pub fn write_byte(&mut self, address: Word, data: Byte) {
         self.mem.write_byte(address, data);
     }
 
+    /// Write a word of data to the specified address.
     pub fn write_word(&mut self, address: Word, data: Word) {
         self.mem.write_word(address, data);
     }

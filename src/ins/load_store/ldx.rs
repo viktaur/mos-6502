@@ -1,4 +1,4 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
+use crate::{cpu::CPU, ins::Instruction, mem::Addr};
 use crate::{Byte, Word};
 
 /// Load X Register. Loads a byte of memory into the X register setting the zero and

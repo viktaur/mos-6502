@@ -1,5 +1,5 @@
-use crate::{cpu::CPU, ins::Instruction, mem::{Addr, Memory}};
-use crate::{Byte, Word};
+use crate::{cpu::CPU, ins::Instruction, mem::Addr};
+use crate::Byte;
 
 pub struct JSR(pub Addr);
 
