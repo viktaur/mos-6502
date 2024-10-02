@@ -23,10 +23,10 @@ have been implemented in this project yet.
 - [x] [STY - Store Y Register](src/ins/load_store/sty.rs)
 
 ### Register Transfers
-- [ ] TAX - Transfer accumulator to X
-- [ ] TAY - Transfer accumulator to Y
-- [ ] TXA - Transfer X to accumulator
-- [ ] TYA - Transfer Y to accumulator
+- [x] TAX - Transfer accumulator to X
+- [x] TAY - Transfer accumulator to Y
+- [x] TXA - Transfer X to accumulator
+- [x] TYA - Transfer Y to accumulator
 
 ### Stack Operations
 - [ ] TSX - Transfer stack pointer to X
