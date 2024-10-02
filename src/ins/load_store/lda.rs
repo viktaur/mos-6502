@@ -95,16 +95,17 @@ impl Instruction for LDA {
 mod tests {
     use super::*;
     use crate::cpu::CPU;
-    use crate::mem::{Memory, Addr};
+    use crate::mem::Addr;
 
     #[test]
     fn lda_immediate() {
         let mut cpu = CPU::new();
-        let cpu_start = cpu.clone();
 
         cpu.reset();
         cpu.mem.write_byte(0xFFFC, LDA(Addr::Immediate).code());
         cpu.mem.write_byte(0xFFFD, 0x84);
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x84);
@@ -121,17 +122,17 @@ mod tests {
     #[test]
     fn lda_zero_page() {
         let mut cpu = CPU::new();
-        let cpu_start = cpu.clone();
 
         cpu.reset();
         cpu.mem.write_byte(0xFFFC, LDA(Addr::ZeroPage).code());
         cpu.mem.write_byte(0xFFFD, 0x42);
         cpu.mem.write_byte(0x0042, 0x84);
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x84);
 
-        // TODO check flags
         assert_eq!(cpu.flags.c, cpu_start.flags.c);
         assert_eq!(cpu.flags.z, false);
         assert_eq!(cpu.flags.i, cpu_start.flags.i);
@@ -149,12 +150,20 @@ mod tests {
         cpu.reg.x = 0x02;
         cpu.mem.write_byte(0xFFFC, LDA(Addr::ZeroPageX).code());
         cpu.mem.write_byte(0xFFFD, 0xFF);
-        cpu.mem.write_byte(0x01, 0x85); // 0xFF + 0x02 mod 256 = 0x01
+        cpu.mem.write_byte(0x0001, 0x85); // 0xFF + 0x02 % 0xFF = 0x01
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x85);
 
-        // TODO test flags
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, true);
     }
 
     #[test]
@@ -166,12 +175,19 @@ mod tests {
         cpu.mem.write_byte(0xFFFC, LDA(Addr::Absolute).code());
         cpu.mem.write_byte(0xFFFE, 0x44); // 0x4480 (LE)
         cpu.mem.write_byte(0x4480, 0x37);
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
-        // TODO test flags
-
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, false);
     }
 
     #[test]
@@ -184,11 +200,19 @@ mod tests {
         cpu.mem.write_byte(0xFFFD, 0x00);
         cpu.mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
         cpu.mem.write_byte(0x4412, 0x37);
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
-        // TODO test flags
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, false);
 
     }
 
@@ -202,11 +226,19 @@ mod tests {
         cpu.mem.write_byte(0xFFFD, 0x00);
         cpu.mem.write_byte(0x4412, 0x37);
         cpu.mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
-        // TODO test flags
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, false);
     }
 
     #[test]
@@ -220,11 +252,19 @@ mod tests {
         cpu.mem.write_byte(0x0006, 0x00);
         cpu.mem.write_byte(0x0007, 0x80); // 0x8000 (LE)
         cpu.mem.write_byte(0x8000, 0x37);
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
-        // TODO test flags
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, false);
     }
 
     #[test]
@@ -238,10 +278,18 @@ mod tests {
         cpu.mem.write_byte(0x0002, 0x00);
         cpu.mem.write_byte(0x0003, 0x80); // 0x8000 (LE)
         cpu.mem.write_byte(0x8004, 0x37); // 0x8000 + 0x0004
+
+        let cpu_start = cpu.clone();
         cpu.start();
 
         assert_eq!(cpu.reg.acc, 0x37);
 
-        // TODO test flags
+        assert_eq!(cpu.flags.c, cpu_start.flags.c);
+        assert_eq!(cpu.flags.z, false);
+        assert_eq!(cpu.flags.i, cpu_start.flags.i);
+        assert_eq!(cpu.flags.d, cpu_start.flags.d);
+        assert_eq!(cpu.flags.b, cpu_start.flags.b);
+        assert_eq!(cpu.flags.v, cpu_start.flags.v);
+        assert_eq!(cpu.flags.n, false);
     }
 }

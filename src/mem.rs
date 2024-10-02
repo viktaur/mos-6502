@@ -63,12 +63,11 @@ pub enum Addr {
     /// `0x0000` to `0x00FF`), where the most significant byte of the address is always
     /// zero.
     ZeroPage,
-    /// The address to be accessed by an instruction using indexed zero page addressing is
-    /// calculated by taking the 8-bit zero page address from the instruction and adding
-    /// the current value of the X register to it. For example, if the X register contains
-    /// `0x0F` and the instruction `LDA $80,X` is executed, then the accumulator will be
-    /// loaded from `0x008F` (i.e. `0x80 + 0x0F => 0x8F`).
+    /// The address is calculated by taking a Zero Page address and adding the value in
+    /// the X register, wrapping if it goes over 0xFF.
     ZeroPageX,
+    /// The address is calculated by taking a Zero Page address and adding the value in
+    /// the Y register, wrapping if it goes over 0xFF.
     ZeroPageY,
     Relative,
     /// Uses a full 16-bit address to identify the target location.
