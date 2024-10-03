@@ -1,7 +1,6 @@
 use crate::{Byte, Word};
 use crate::mem::Memory;
 use crate::ins::DecodeIns;
-use deku::prelude::*;
 
 /// All internal data structures of the 6502 CPU.
 #[derive(Clone)]
@@ -9,6 +8,10 @@ pub struct CPU {
     /// Program counter.
     pub pc: Word,
     /// Stack pointer (should only be `Byte`, not a `Word`).
+    ///
+    /// The stack pointer (S) points to a byte on Page 1, that is, to a byte whose address
+    /// is from 0100 to 01FF, where the last two digits are supplied by S. When a byte is
+    /// pushed on the stack, it is written at the address in S, and then S is decremented.
     pub sp: Byte,
     /// Cycle count.
     pub cycles: u32,
@@ -39,7 +42,7 @@ impl CPU {
         self.cycles = 0;
         self.reg.clear();
         self.flags.clear();
-        self.mem.init()
+        self.mem.init();
     }
 
     /// Fetch the next instruction from memory.
@@ -65,6 +68,10 @@ impl CPU {
     /// Write a word of data to the specified address.
     pub fn write_word(&mut self, address: Word, data: Word) {
         self.mem.write_word(address, data);
+    }
+
+    pub fn stack_address(addr: Byte) -> Word {
+        0x0100 + addr as Word
     }
 
     /// Starts the fetch-decode-execute cycle.
@@ -117,29 +124,21 @@ impl Registers {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Default, DekuRead, DekuWrite)]
-#[deku(endian = "little")]
+#[derive(Clone, Default)]
 pub struct StatusFlags {
     /// Carry Flag.
-    #[deku(bits = 1)]
     pub c: bool,
     /// Zero Flag.
-    #[deku(bits = 1)]
     pub z: bool,
     /// Interrupt Disable.
-    #[deku(bits = 1)]
     pub i: bool,
     /// Decimal Mode Flag.
-    #[deku(bits = 1)]
     pub d: bool,
     /// Break Command.
-    #[deku(bits = 1)]
     pub b: bool,
     /// Overflow Flag.
-    #[deku(bits = 1)]
     pub v: bool,
     /// Negative Flag.
-    #[deku(bits = 1)]
     pub n: bool,
 }
 
@@ -150,5 +149,33 @@ impl StatusFlags {
 
     fn clear(&mut self) {
         *self = Self::default();
+    }
+}
+
+impl Into<Byte> for StatusFlags {
+    fn into(self) -> u8 {
+        (if self.c { 0b00000001 } else { 0 }) &
+        (if self.z { 0b00000010 } else { 0 }) &
+        (if self.i { 0b00000100 } else { 0 }) &
+        (if self.d { 0b00001000 } else { 0 }) &
+        (if self.b { 0b00010000 } else { 0 }) &
+        // empty
+        (if self.v { 0b01000000 } else { 0 }) &
+        (if self.n { 0b10000000 } else { 0 })
+    }
+}
+
+impl From<Byte> for StatusFlags {
+    fn from(value: u8) -> Self {
+        let c = (value & 0b00000001) > 0;
+        let z = (value & 0b00000010) > 0;
+        let i = (value & 0b00000100) > 0;
+        let d = (value & 0b00001000) > 0;
+        let b = (value & 0b00010000) > 0;
+        // empty
+        let v = (value & 0b01000000) > 0;
+        let n = (value & 0b10000000) > 0;
+
+        Self { c, z, i, d, b, v, n }
     }
 }

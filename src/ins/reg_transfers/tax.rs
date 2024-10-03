@@ -20,6 +20,7 @@ impl Instruction for TAX {
             // 1B, 2C
             TAX(Addr::Implicit) => {
                 cpu.reg.x = cpu.reg.acc;
+                cpu.pc += 1;
             },
             _ => panic!("Operation not supported!")
         }

@@ -20,6 +20,7 @@ impl Instruction for TYA {
             // 1B, 2C
             TYA(Addr::Implicit) => {
                 cpu.reg.acc = cpu.reg.y;
+                cpu.pc += 1;
             },
             _ => panic!("Operation not supported!")
         }

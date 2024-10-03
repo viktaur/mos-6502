@@ -20,6 +20,7 @@ impl Instruction for TAY {
             // 1B, 2C
             TAY(Addr::Implicit) => {
                 cpu.reg.y = cpu.reg.acc;
+                cpu.pc += 1;
             },
             _ => panic!("Operation not supported!")
         }

@@ -20,6 +20,7 @@ impl Instruction for TXA {
             // 1B, 2C
             TXA(Addr::Implicit) => {
                 cpu.reg.acc = cpu.reg.x;
+                cpu.pc += 1;
             },
             _ => panic!("Operation not supported!")
         }
