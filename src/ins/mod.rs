@@ -1,5 +1,6 @@
 use load_store::{lda::LDA, ldx::LDX, ldy::LDY, sta::STA, stx::STX, sty::STY};
 use reg_transfers::{tax::TAX, tay::TAY, txa::TXA, tya::TYA};
+use stack_ops::{tsx::TSX, txs::TXS, pha::PHA, php::PHP, pla::PLA, plp::PLP};
 use jumps_calls::jsr::JSR;
 use sys_funcs::brk::BRK;
 
@@ -77,6 +78,19 @@ impl InstructionDecoder {
             0x8A => Box::new(TXA(Addr::Implicit)),
 
             0x98 => Box::new(TYA(Addr::Implicit)),
+
+            // Stack operations
+            0xBA => Box::new(TSX(Addr::Implicit)),
+
+            0x9A => Box::new(TXS(Addr::Implicit)),
+
+            0x48 => Box::new(PHA(Addr::Implicit)),
+
+            0x08 => Box::new(PHP(Addr::Implicit)),
+
+            0x68 => Box::new(PLA(Addr::Implicit)),
+
+            0x28 => Box::new(PLP(Addr::Implicit)),
 
 
             // Jumps & Calls

@@ -29,12 +29,12 @@ have been implemented in this project yet.
 - [x] [TYA - Transfer Y to accumulator](src/ins/reg_transfers/tya.rs)
 
 ### Stack Operations
-- [x] TSX - Transfer stack pointer to X
-- [x] TXS - Transfer X to stack pointer
-- [x] PHA - Push accumulator on stack
-- [x] PHP - Push processor status on stack
-- [x] PLA - Pull accumulator from stack
-- [x] PLP - Pull processor status from stack
+- [x] [TSX - Transfer stack pointer to X](src/ins/stack_ops/tsx.rs)
+- [x] [TXS - Transfer X to stack pointer](src/ins/stack_ops/txs.rs)
+- [x] [PHA - Push accumulator on stack](src/ins/stack_ops/pha.rs)
+- [x] [PHP - Push processor status on stack](src/ins/stack_ops/php.rs)
+- [x] [PLA - Pull accumulator from stack](src/ins/stack_ops/pla.rs)
+- [x] [PLP - Pull processor status from stack](src/ins/stack_ops/plp.rs)
 
 ### Logical
 - [ ] AND - Logical AND
