@@ -1,6 +1,7 @@
 use load_store::{lda::LDA, ldx::LDX, ldy::LDY, sta::STA, stx::STX, sty::STY};
 use reg_transfers::{tax::TAX, tay::TAY, txa::TXA, tya::TYA};
 use stack_ops::{tsx::TSX, txs::TXS, pha::PHA, php::PHP, pla::PLA, plp::PLP};
+use inc_dec::{inc::INC, inx::INX, iny::INY, dec::DEC, dex::DEX, dey::DEY};
 use jumps_calls::jsr::JSR;
 use sys_funcs::brk::BRK;
 
@@ -92,6 +93,24 @@ impl InstructionDecoder {
 
             0x28 => Box::new(PLP(Addr::Implicit)),
 
+            // Increments & Decrements
+            0xE6 => Box::new(INC(Addr::ZeroPage)),
+            0xF6 => Box::new(INC(Addr::ZeroPageX)),
+            0xEE => Box::new(INC(Addr::Absolute)),
+            0xFE => Box::new(INC(Addr::AbsoluteX)),
+
+            0xE8 => Box::new(INX(Addr::Implicit)),
+
+            0xC8 => Box::new(INY(Addr::Implicit)),
+
+            0xC6 => Box::new(DEC(Addr::ZeroPage)),
+            0xD6 => Box::new(DEC(Addr::ZeroPageX)),
+            0xCE => Box::new(DEC(Addr::Absolute)),
+            0xDE => Box::new(DEC(Addr::AbsoluteX)),
+
+            0xCA => Box::new(DEX(Addr::Implicit)),
+
+            0x88 => Box::new(DEY(Addr::Implicit)),
 
             // Jumps & Calls
             0x20 => Box::new(JSR(Addr::Absolute)),

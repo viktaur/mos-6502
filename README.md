@@ -50,12 +50,12 @@ have been implemented in this project yet.
 - [ ] CPY - Compare Y register
 
 ### Increments & Decrements
-- [ ] INC - Increment a memory location
-- [ ] INX - Increment the X register
-- [ ] INY - Increment the Y register
-- [ ] DEC - Decrement a memory location
-- [ ] DEX - Decrement the X register
-- [ ] DEY - Decrement the Y register
+- [x] [INC - Increment a memory location](src/ins/inc_dec/inc.rs)
+- [x] [INX - Increment the X register](src/ins/inc_dec/inx.rs)
+- [x] [INY - Increment the Y register](src/ins/inc_dec/iny.rs)
+- [x] [DEC - Decrement a memory location](src/ins/inc_dec/dec.rs)
+- [x] [DEX - Decrement the X register](src/ins/inc_dec/dex.rs)
+- [x] [DEY - Decrement the Y register](src/ins/inc_dec/dey.rs)
 
 ### Shifts
 - [ ] ASL - Arithmetic Shift Left
