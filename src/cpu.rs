@@ -124,7 +124,7 @@ impl Registers {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug, PartialEq, Eq)]
 pub struct StatusFlags {
     /// Carry Flag.
     pub c: bool,
@@ -154,13 +154,13 @@ impl StatusFlags {
 
 impl Into<Byte> for StatusFlags {
     fn into(self) -> u8 {
-        (if self.c { 0b00000001 } else { 0 }) &
-        (if self.z { 0b00000010 } else { 0 }) &
-        (if self.i { 0b00000100 } else { 0 }) &
-        (if self.d { 0b00001000 } else { 0 }) &
-        (if self.b { 0b00010000 } else { 0 }) &
+        (if self.c { 0b00000001 } else { 0 }) |
+        (if self.z { 0b00000010 } else { 0 }) |
+        (if self.i { 0b00000100 } else { 0 }) |
+        (if self.d { 0b00001000 } else { 0 }) |
+        (if self.b { 0b00010000 } else { 0 }) |
         // empty
-        (if self.v { 0b01000000 } else { 0 }) &
+        (if self.v { 0b01000000 } else { 0 }) |
         (if self.n { 0b10000000 } else { 0 })
     }
 }
@@ -177,5 +177,43 @@ impl From<Byte> for StatusFlags {
         let n = (value & 0b10000000) > 0;
 
         Self { c, z, i, d, b, v, n }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_flags_into_byte() {
+        let flags = StatusFlags {
+            c: false,
+            z: false,
+            i: true,
+            d: false,
+            b: true,
+            v: true,
+            n: false,
+        };
+        let flags_byte: Byte = flags.into();
+        assert_eq!(flags_byte, 0b01010100);
+    }
+
+    #[test]
+    fn test_byte_into_status_flags() {
+        let flags = StatusFlags {
+            c: false,
+            z: false,
+            i: true,
+            d: false,
+            b: true,
+            v: true,
+            n: false,
+        };
+        assert_eq!(StatusFlags::from(0b01010100), flags);
+        // We should never reach this value since bit 5 is unused, but the conversion
+        // should still be valid.
+        assert_eq!(StatusFlags::from(0b01110100), flags);
+
     }
 }
