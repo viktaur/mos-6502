@@ -117,6 +117,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, true);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFE);
     }
 
     #[test]
@@ -140,6 +143,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, true);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFE);
     }
 
     #[test]
@@ -164,6 +170,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, true);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFE);
     }
 
     #[test]
@@ -171,8 +180,8 @@ mod tests {
         let mut cpu = CPU::new();
 
         cpu.reset();
-        cpu.mem.write_byte(0xFFFD, 0x80);
         cpu.mem.write_byte(0xFFFC, LDA(Addr::Absolute).code());
+        cpu.mem.write_byte(0xFFFD, 0x80);
         cpu.mem.write_byte(0xFFFE, 0x44); // 0x4480 (LE)
         cpu.mem.write_byte(0x4480, 0x37);
 
@@ -188,6 +197,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, false);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFF);
     }
 
     #[test]
@@ -214,6 +226,8 @@ mod tests {
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, false);
 
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFF);
     }
 
     #[test]
@@ -224,8 +238,8 @@ mod tests {
         cpu.reg.y = 0x12;
         cpu.mem.write_byte(0xFFFC, LDA(Addr::AbsoluteY).code());
         cpu.mem.write_byte(0xFFFD, 0x00);
-        cpu.mem.write_byte(0x4412, 0x37);
         cpu.mem.write_byte(0xFFFE, 0x44); // 0x4400 (LE)
+        cpu.mem.write_byte(0x4412, 0x37);
 
         let cpu_start = cpu.clone();
         cpu.start();
@@ -239,6 +253,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, false);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFF);
     }
 
     #[test]
@@ -265,6 +282,9 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, false);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFE);
     }
 
     #[test]
@@ -291,5 +311,8 @@ mod tests {
         assert_eq!(cpu.flags.b, cpu_start.flags.b);
         assert_eq!(cpu.flags.v, cpu_start.flags.v);
         assert_eq!(cpu.flags.n, false);
+
+        assert_eq!(cpu_start.pc, 0xFFFC);
+        assert_eq!(cpu.pc, 0xFFFE);
     }
 }

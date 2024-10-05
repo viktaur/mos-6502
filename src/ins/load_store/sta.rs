@@ -1,11 +1,11 @@
-use crate::{ins::Instruction, mem::Addr};
+use crate::{ins::Instruction, mem::Addr, cpu::CPU};
 use crate::{Byte, Word};
 
 /// Store Accumulator - Store the contents of the accumulator register into memory.
 pub struct STA(pub Addr);
 
 impl Instruction for STA {
-    fn execute(&self, cpu: &mut crate::cpu::CPU) {
+    fn execute(&self, cpu: &mut CPU) {
         match self {
             // 2B, 3C
             STA(Addr::ZeroPage) => {
@@ -71,5 +71,120 @@ impl Instruction for STA {
             STA(Addr::IndirectY) => 0x91,
             _ => panic!("Operation not supported!")
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sta_zero_page() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::ZeroPage).code());
+        cpu.mem.write_byte(0xFFFD, 0x22);
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x0022);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_zero_page_x() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.reg.x = 0x03;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::ZeroPageX).code());
+        cpu.mem.write_byte(0xFFFD, 0xFE);
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x0001);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_absolute() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::Absolute).code());
+        cpu.mem.write_byte(0xFFFD, 0x22);
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4422 (LE)
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x4422);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_absolute_x() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.reg.x = 0x05;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::AbsoluteX).code());
+        cpu.mem.write_byte(0xFFFD, 0x22);
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4422 (LE)
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x4427);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_absolute_y() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.reg.y = 0x05;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::AbsoluteY).code());
+        cpu.mem.write_byte(0xFFFD, 0x22);
+        cpu.mem.write_byte(0xFFFE, 0x44); // 0x4422 (LE)
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x4427);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_absolute_x_indirect() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.reg.x = 0x05;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::XIndirect).code());
+        cpu.mem.write_byte(0xFFFD, 0x60);
+        cpu.mem.write_byte(0x0065, 0x22);
+        cpu.mem.write_byte(0x0066, 0x44); // 0x4422 (LE)
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x4422);
+        assert_eq!(value, cpu.reg.acc);
+    }
+
+    #[test]
+    fn sta_absolute_indirect_y() {
+        let mut cpu = CPU::new();
+
+        cpu.reset();
+        cpu.reg.acc = 0x42;
+        cpu.reg.y = 0x05;
+        cpu.mem.write_byte(0xFFFC, STA(Addr::IndirectY).code());
+        cpu.mem.write_byte(0xFFFD, 0x60);
+        cpu.mem.write_byte(0x0060, 0x22);
+        cpu.mem.write_byte(0x0061, 0x44); // 0x4422 (LE)
+        cpu.start();
+
+        let value = cpu.mem.read_byte(0x4427);
+        assert_eq!(value, cpu.reg.acc);
     }
 }

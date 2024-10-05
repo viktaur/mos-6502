@@ -2,6 +2,7 @@ use load_store::{lda::LDA, ldx::LDX, ldy::LDY, sta::STA, stx::STX, sty::STY};
 use reg_transfers::{tax::TAX, tay::TAY, txa::TXA, tya::TYA};
 use stack_ops::{tsx::TSX, txs::TXS, pha::PHA, php::PHP, pla::PLA, plp::PLP};
 use inc_dec::{inc::INC, inx::INX, iny::INY, dec::DEC, dex::DEX, dey::DEY};
+use status_flags::{clc::CLC, cld::CLD, cli::CLI, clv::CLV, sec::SEC, sed::SED, sei::SEI};
 use jumps_calls::jsr::JSR;
 use sys_funcs::brk::BRK;
 
@@ -80,6 +81,7 @@ impl InstructionDecoder {
 
             0x98 => Box::new(TYA(Addr::Implicit)),
 
+
             // Stack operations
             0xBA => Box::new(TSX(Addr::Implicit)),
 
@@ -92,6 +94,7 @@ impl InstructionDecoder {
             0x68 => Box::new(PLA(Addr::Implicit)),
 
             0x28 => Box::new(PLP(Addr::Implicit)),
+
 
             // Increments & Decrements
             0xE6 => Box::new(INC(Addr::ZeroPage)),
@@ -112,8 +115,25 @@ impl InstructionDecoder {
 
             0x88 => Box::new(DEY(Addr::Implicit)),
 
+
             // Jumps & Calls
             0x20 => Box::new(JSR(Addr::Absolute)),
+
+            // Status Flag Changes
+            0x18 => Box::new(CLC(Addr::Implicit)),
+
+            0xD8 => Box::new(CLD(Addr::Implicit)),
+
+            0x58 => Box::new(CLI(Addr::Implicit)),
+
+            0xB8 => Box::new(CLV(Addr::Implicit)),
+
+            0x38 => Box::new(SEC(Addr::Implicit)),
+
+            0xF8 => Box::new(SED(Addr::Implicit)),
+
+            0x78 => Box::new(SEI(Addr::Implicit)),
+
 
             // System Functions
             0x00 => Box::new(BRK(Addr::Implicit)),
