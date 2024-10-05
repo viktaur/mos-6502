@@ -1,6 +1,7 @@
 use load_store::{lda::LDA, ldx::LDX, ldy::LDY, sta::STA, stx::STX, sty::STY};
 use reg_transfers::{tax::TAX, tay::TAY, txa::TXA, tya::TYA};
 use stack_ops::{tsx::TSX, txs::TXS, pha::PHA, php::PHP, pla::PLA, plp::PLP};
+use logical::{and::AND, eor::EOR, bit::BIT, ora::ORA};
 use inc_dec::{inc::INC, inx::INX, iny::INY, dec::DEC, dex::DEX, dey::DEY};
 use status_flags::{clc::CLC, cld::CLD, cli::CLI, clv::CLV, sec::SEC, sed::SED, sei::SEI};
 use jumps_calls::jsr::JSR;
@@ -34,7 +35,7 @@ impl InstructionDecoder {
     pub fn from_byte(code: Byte) -> Box<dyn Instruction> {
         match code {
             // Load / Store
-            0x49 => Box::new(LDA(Addr::Immediate)),
+            0xA9 => Box::new(LDA(Addr::Immediate)),
             0xA5 => Box::new(LDA(Addr::ZeroPage)),
             0xB5 => Box::new(LDA(Addr::ZeroPageX)),
             0xAD => Box::new(LDA(Addr::Absolute)),
@@ -95,6 +96,37 @@ impl InstructionDecoder {
 
             0x28 => Box::new(PLP(Addr::Implicit)),
 
+
+            // Logical
+            0x29 => Box::new(AND(Addr::Immediate)),
+            0x25 => Box::new(AND(Addr::ZeroPage)),
+            0x35 => Box::new(AND(Addr::ZeroPageX)),
+            0x2D => Box::new(AND(Addr::Absolute)),
+            0x3D => Box::new(AND(Addr::AbsoluteX)),
+            0x39 => Box::new(AND(Addr::AbsoluteY)),
+            0x21 => Box::new(AND(Addr::XIndirect)),
+            0x31 => Box::new(AND(Addr::IndirectY)),
+
+            0x49 => Box::new(EOR(Addr::Immediate)),
+            0x45 => Box::new(EOR(Addr::ZeroPage)),
+            0x55 => Box::new(EOR(Addr::ZeroPageX)),
+            0x4D => Box::new(EOR(Addr::Absolute)),
+            0x5D => Box::new(EOR(Addr::AbsoluteX)),
+            0x59 => Box::new(EOR(Addr::AbsoluteY)),
+            0x41 => Box::new(EOR(Addr::XIndirect)),
+            0x51 => Box::new(EOR(Addr::IndirectY)),
+
+            0x09 => Box::new(ORA(Addr::Immediate)),
+            0x05 => Box::new(ORA(Addr::ZeroPage)),
+            0x15 => Box::new(ORA(Addr::ZeroPageX)),
+            0x0D => Box::new(ORA(Addr::Absolute)),
+            0x1D => Box::new(ORA(Addr::AbsoluteX)),
+            0x19 => Box::new(ORA(Addr::AbsoluteY)),
+            0x01 => Box::new(ORA(Addr::XIndirect)),
+            0x11 => Box::new(ORA(Addr::IndirectY)),
+
+            0x24 => Box::new(BIT(Addr::ZeroPage)),
+            0x2C => Box::new(BIT(Addr::Absolute)),
 
             // Increments & Decrements
             0xE6 => Box::new(INC(Addr::ZeroPage)),

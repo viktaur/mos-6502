@@ -37,10 +37,10 @@ have been implemented in this project yet.
 - [x] [PLP - Pull processor status from stack](src/ins/stack_ops/plp.rs)
 
 ### Logical
-- [ ] AND - Logical AND
-- [ ] EOR - Exclusive OR
-- [ ] ORA - Logical Inclusive OR
-- [ ] BIT - Bit Test
+- [x] [AND - Logical AND](src/ins/logical/and.rs)
+- [x] [EOR - Exclusive OR](src/ins/logical/eor.rs)
+- [x] [ORA - Logical Inclusive OR](src/ins/logical/ora.rs)
+- [x] [BIT - Bit Test](src/ins/logical/bit.rs)
 
 ### Arithmetic
 - [ ] ADC - Add with Carry
