@@ -79,13 +79,13 @@ have been implemented in this project yet.
 - [ ] BVS - Branch if overflow flag set
 
 ### Status Flag Changes
-- [ ] [CLC - Clear carry flag](src/ins/status_flags/clc.rs)
-- [ ] [CLD - Clear decimal mode flag](src/ins/status_flags/cld.rs)
-- [ ] [CLI - Clear interrupt disable flag](src/ins/status_flags/cli.rs)
-- [ ] [CLV - Clear overflow flag](src/ins/status_flags/clv.rs)
-- [ ] [SEC - Set carry flag](src/ins/status_flags/sec.rs)
-- [ ] [SED - Set decimal mode flag](src/ins/status_flags/sed.rs)
-- [ ] [SEI - Set interrupt disable flag](src/ins/status_flags/sei.rs)
+- [x] [CLC - Clear carry flag](src/ins/status_flags/clc.rs)
+- [x] [CLD - Clear decimal mode flag](src/ins/status_flags/cld.rs)
+- [x] [CLI - Clear interrupt disable flag](src/ins/status_flags/cli.rs)
+- [x] [CLV - Clear overflow flag](src/ins/status_flags/clv.rs)
+- [x] [SEC - Set carry flag](src/ins/status_flags/sec.rs)
+- [x] [SED - Set decimal mode flag](src/ins/status_flags/sed.rs)
+- [x] [SEI - Set interrupt disable flag](src/ins/status_flags/sei.rs)
 
 ### System Functions
 - [x] [BRK - Force an interrupt](src/ins/sys_funcs/brk.rs)
