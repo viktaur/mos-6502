@@ -8,7 +8,7 @@ actually work and how they can be emulated.
 
 <img src="https://github.com/user-attachments/assets/d5dd902d-df3b-4e54-8b87-991bec17b23f" alt="6502 processor in a DIP-40 plastic package" width="400"/>
 <br></br>
-<img src="https://github.com/user-attachments/assets/c494bfde-e476-4073-b2b9-84872a9f4da9" alt="6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components" width="600"/>
+<img src="https://github.com/user-attachments/assets/c494bfde-e476-4073-b2b9-84872a9f4da9" alt="6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components" width="400"/>
 
 ## Instruction set
 The following is the complete set of instructions supported by the 6502 and whether they
@@ -91,6 +91,13 @@ have been implemented in this project yet.
 - [x] [BRK - Force an interrupt](src/ins/sys_funcs/brk.rs)
 - [ ] NOP - No Operation
 - [ ] RTI - Return from Interrupt
+
+## Contributing
+This project is a great opportunity for intermediate to advanced Rust developers, as well as more experienced developers coming from a C/C++ background who are interested in learning Rust. It is not only a fun challenge, but will also help you understand the low-level logic that drives everyday devices at a foundational level.
+
+To get started, it would be helpful to compare the existing implementations in this codebase with the instruction set reference. Understanding these implementation patterns will make it easier to learn and write the remaining parts of the instruction set. Another way of helping is by writing more unit tests, with the aim of having at least one test per opcode.
+
+If you're interested in making a contribution, please **feel free to open a PR :)** !
 
 ## References
 - [The 6502 Microprocessor Resource](http://www.6502.org/users/obelisk/6502/)
