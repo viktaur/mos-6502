@@ -96,3 +96,4 @@ have been implemented in this project yet.
 - [The 6502 Microprocessor Resource](http://www.6502.org/users/obelisk/6502/)
 - [Programming the NES: The 6502 in detail](https://www.middle-engine.com/blog/posts/2020/06/23/programming-the-nes-the-6502-in-detail)
 - [Emulating a CPU in C++ (6502)](https://youtu.be/qJgsuQoy9bc)
+- [6502 Assembly - Wikibooks](https://en.wikibooks.org/wiki/6502_Assembly)

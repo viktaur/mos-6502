@@ -128,6 +128,7 @@ impl InstructionDecoder {
             0x24 => Box::new(BIT(Addr::ZeroPage)),
             0x2C => Box::new(BIT(Addr::Absolute)),
 
+
             // Increments & Decrements
             0xE6 => Box::new(INC(Addr::ZeroPage)),
             0xF6 => Box::new(INC(Addr::ZeroPageX)),
@@ -150,6 +151,7 @@ impl InstructionDecoder {
 
             // Jumps & Calls
             0x20 => Box::new(JSR(Addr::Absolute)),
+
 
             // Status Flag Changes
             0x18 => Box::new(CLC(Addr::Implicit)),

@@ -76,7 +76,8 @@ impl CPU {
 
     /// Starts the fetch-decode-execute cycle.
     pub fn start(&mut self) {
-        // loop {
+        // TODO handle stack calls
+        // while !self.flags.b {
             self
                 // Fetch the next instruction code from memory.
                 .fetch()
@@ -152,21 +153,34 @@ impl StatusFlags {
     }
 }
 
-impl Into<Byte> for StatusFlags {
-    fn into(self) -> u8 {
-        (if self.c { 0b00000001 } else { 0 }) |
-        (if self.z { 0b00000010 } else { 0 }) |
-        (if self.i { 0b00000100 } else { 0 }) |
-        (if self.d { 0b00001000 } else { 0 }) |
-        (if self.b { 0b00010000 } else { 0 }) |
+// impl Into<Byte> for StatusFlags {
+//     fn into(self) -> u8 {
+//         (if self.c { 0b00000001 } else { 0 }) |
+//         (if self.z { 0b00000010 } else { 0 }) |
+//         (if self.i { 0b00000100 } else { 0 }) |
+//         (if self.d { 0b00001000 } else { 0 }) |
+//         (if self.b { 0b00010000 } else { 0 }) |
+//         // empty
+//         (if self.v { 0b01000000 } else { 0 }) |
+//         (if self.n { 0b10000000 } else { 0 })
+//     }
+// }
+
+impl From<StatusFlags> for Byte {
+    fn from(flags: StatusFlags) -> Self {
+        ((flags.c as Byte) << 0) |
+        ((flags.z as Byte) << 1) |
+        ((flags.i as Byte) << 2) |
+        ((flags.d as Byte) << 3) |
+        ((flags.b as Byte) << 4) |
         // empty
-        (if self.v { 0b01000000 } else { 0 }) |
-        (if self.n { 0b10000000 } else { 0 })
+        ((flags.v as Byte) << 6) |
+        ((flags.n as Byte) << 7)
     }
 }
 
 impl From<Byte> for StatusFlags {
-    fn from(value: u8) -> Self {
+    fn from(value: Byte) -> Self {
         let c = (value & 0b00000001) > 0;
         let z = (value & 0b00000010) > 0;
         let i = (value & 0b00000100) > 0;

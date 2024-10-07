@@ -6,17 +6,21 @@ use crate::cpu::CPU;
 /// is loaded into the PC and the break flag in the status set to one.
 pub struct BRK(pub Addr);
 
+impl BRK {
+    fn set_flags(cpu: &mut CPU) {
+        // Set break command flag
+        cpu.flags.b = true;
+    }
+}
+
 impl Instruction for BRK {
     fn execute(&self, cpu: &mut CPU) {
         match self {
             BRK(Addr::Implicit) => {
-                cpu.flags.b = true;
-
                 // TODO push the pc and processor status onto the stack. Check if the
                 // following is correct.
                 cpu.pc = 0xFFFE;
-                // Terminate the execution.
-                std::process::exit(0);
+                Self::set_flags(cpu);
             },
             _ => panic!("Addressing method not supported")
         }
