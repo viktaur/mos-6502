@@ -92,6 +92,13 @@ have been implemented in this project yet.
 - [ ] NOP - No Operation
 - [ ] RTI - Return from Interrupt
 
+## Contributing
+This project is a great opportunity for intermediate to advanced Rust developers, as well as more experienced developers coming from a C/C++ background who are interested in learning Rust. It is not only a fun challenge, but will also help you understand the low-level logic that drives everyday devices at a foundational level.
+
+To get started, it would be helpful to compare the existing implementations in this codebase with the instruction set reference. Understanding these implementation patterns will make it easier to learn and write the remaining parts of the instruction set. Another way of helping is by writing more unit tests, with the aim of having at least one test per opcode.
+
+If you're interested in making a contribution, please **feel free to open a PR :)** !
+
 ## References
 - [The 6502 Microprocessor Resource](http://www.6502.org/users/obelisk/6502/)
 - [Programming the NES: The 6502 in detail](https://www.middle-engine.com/blog/posts/2020/06/23/programming-the-nes-the-6502-in-detail)
