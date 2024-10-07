@@ -8,7 +8,7 @@ actually work and how they can be emulated.
 
 <img src="https://github.com/user-attachments/assets/d5dd902d-df3b-4e54-8b87-991bec17b23f" alt="6502 processor in a DIP-40 plastic package" width="400"/>
 <br></br>
-<img src="https://github.com/user-attachments/assets/c494bfde-e476-4073-b2b9-84872a9f4da9" alt="6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components" width="600"/>
+<img src="https://github.com/user-attachments/assets/c494bfde-e476-4073-b2b9-84872a9f4da9" alt="6502 processor die with drawn-in NMOS transistors and labels hinting at the functionality of the 6502's components" width="400"/>
 
 ## Instruction set
 The following is the complete set of instructions supported by the 6502 and whether they
