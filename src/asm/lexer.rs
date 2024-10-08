@@ -1,5 +1,6 @@
 use thiserror::Error;
-use miette::{Diagnostic, SourceSpan, NamedSource};
+use miette::{Diagnostic, NamedSource, SourceSpan};
+use fixedstr::*;
 
 use crate::{Byte, Word};
 
@@ -12,6 +13,13 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    pub fn new(src: &'a str) -> Self {
+        Lexer {
+            src,
+            pos: 0
+        }
+    }
+
     pub fn tokenise(&mut self) -> Result<Vec<Token>, LexingError> {
         let mut tokens = vec![];
 
@@ -25,7 +33,7 @@ impl<'a> Lexer<'a> {
                     }
                 },
                 None => { return Err(LexingError {
-                    src: NamedSource::new("bad_file.rs", self.src.to_owned()),
+                    src: self.src.to_owned(),
                     bad_bit: self.get_line_col().into(),
                 });}
             }
@@ -53,9 +61,13 @@ impl<'a> Lexer<'a> {
 /// We want to implement our lexer as a stream of tokens, so we implement the iterator
 /// trait for our lexer.
 impl<'a> Iterator for Lexer<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.pos == self.src.len() {
+            return Some(Token::EOF);
+        }
+
         match self.cur_char() {
             // If we find a whitespace, skip
             Some(' ') => {
@@ -72,7 +84,8 @@ impl<'a> Iterator for Lexer<'a> {
             },
             // An alphabetic character (other than X and Y) can only be an instruction identifier
             Some('a'..='z' | 'A'..='Z') => {
-                let t = Token::Instruction(&self.src[self.pos..self.pos + 3]);
+                let name = &self.src[self.pos..self.pos + 3];
+                let t = Token::Instruction(name.to_uppercase().into());
                 self.pos += 3;
                 Some(t)
             },
@@ -150,9 +163,9 @@ impl<'a> Iterator for Lexer<'a> {
     }
 }
 
-#[derive(Clone, Copy)]
-pub enum Token<'a> {
-    Instruction(&'a str),
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Token {
+    Instruction(str8),
     Comma,
     XReg,
     YReg,
@@ -162,7 +175,6 @@ pub enum Token<'a> {
     ByteValue(Byte),
     WordValue(Word),
     CommentDelimiter,
-    Value(&'a str),
     NewLine,
     EOF
 }
@@ -173,8 +185,32 @@ pub struct LexingError {
     // The Source that we're gonna be printing snippets out of.
     // This can be a String if you don't have or care about file names.
     #[source_code]
-    src: NamedSource<String>,
+    src: String,
     // Snippets and highlights can be included in the diagnostic!
     #[label("This bit here")]
     bad_bit: SourceSpan,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_lexer() {
+        let src = "lda       #$3da5\nSTA  %00100110";
+        let mut lexer = Lexer::new(&src);
+        let tokens = lexer.tokenise().expect("An array of tokens should be returned.");
+        assert_eq!(
+            tokens,
+            [
+                Token::Instruction("LDA".into()),
+                Token::ImmediateSpecifier,
+                Token::WordValue(0x3DA5),
+                Token::NewLine,
+                Token::Instruction("STA".into()),
+                Token::ByteValue(0b00100110),
+                Token::EOF
+            ]
+        );
+    }
 }

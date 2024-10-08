@@ -164,6 +164,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fixedstr"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60aba7afd9b1b9e1950c2b7e8bcac3cc44a273c62a02717dedca2d0a1aee694d"
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -274,6 +280,7 @@ dependencies = [
  "anyhow",
  "ctor",
  "deku",
+ "fixedstr",
  "miette",
  "num",
  "num-derive",
