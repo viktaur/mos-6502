@@ -1,5 +1,5 @@
 use thiserror::Error;
-use miette::{Diagnostic, NamedSource, SourceSpan};
+use miette::{Diagnostic, SourceSpan};
 use fixedstr::*;
 
 use crate::{Byte, Word};

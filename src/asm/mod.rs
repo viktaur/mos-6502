@@ -1,4 +1,5 @@
 pub mod lexer;
+pub mod parser;
 
 #[macro_export]
 macro_rules! asm {
