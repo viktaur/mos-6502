@@ -3,7 +3,7 @@ The [MOS Technology 6502](https://en.wikipedia.org/wiki/MOS_Technology_6502) is 
 few internal registers, 56 instructions with multiple addressing modes, and 64 KB of
 memory space (using 16-bit address words).
 
-Given its relatively simple design, the 6502 is a fantastic architecture to learn how CPUs
+Given its relatively simple design, the 6502 is a good architecture to learn how CPUs
 actually work and how they can be emulated.
 
 <img src="https://github.com/user-attachments/assets/d5dd902d-df3b-4e54-8b87-991bec17b23f" alt="6502 processor in a DIP-40 plastic package" width="400"/>
