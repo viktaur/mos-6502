@@ -9,7 +9,7 @@ use sys_funcs::brk::BRK;
 
 use crate::mem::Addr;
 use crate::cpu::CPU;
-use crate::Byte;
+use crate::{Byte, Word};
 
 pub mod arithmetic;
 pub mod branches;
@@ -27,6 +27,8 @@ pub trait Instruction {
     fn execute(&self, cpu: &mut CPU);
 
     fn code(&self) -> Byte;
+
+    fn bytes_and_cycles(&self, page_crossed: bool) -> (Word, u32);
 }
 
 pub struct InstructionDecoder;

@@ -104,13 +104,13 @@ pub enum Addr {
     IndirectY,
 }
 
-struct Resolved {
-    address: Word,
-    page_crossed: bool,
+pub struct Resolved {
+    pub address: Word,
+    pub page_crossed: bool,
 }
 
 impl Addr {
-    fn resolve(&self, cpu: &mut CPU) -> Resolved {
+    pub fn resolve(&self, cpu: &mut CPU) -> Resolved {
         match self {
             Addr::Implicit => todo!(),
             Addr::Accummulator => todo!(),
@@ -121,7 +121,11 @@ impl Addr {
                 let zp_addr = cpu.read_byte(cpu.pc + 1);
                 Resolved { address: zp_addr as Word, page_crossed: false }
             }
-            Addr::ZeroPageX => todo!(),
+            Addr::ZeroPageX => {
+                let mut zp_addr = cpu.read_byte(cpu.pc + 1);
+                zp_addr = zp_addr.wrapping_add(cpu.reg.x);
+                Resolved { address: zp_addr as Word, page_crossed: false }
+            },
             Addr::ZeroPageY => todo!(),
             Addr::Relative => todo!(),
             Addr::Absolute => todo!(),
