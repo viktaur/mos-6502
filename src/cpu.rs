@@ -5,13 +5,14 @@ use crate::ins::DecodeIns;
 /// All internal data structures of the 6502 CPU.
 #[derive(Clone)]
 pub struct CPU {
-    /// Program counter.
+    /// Program counter. 16-bit register that points to the next instruction to be
+    /// executed. Modified as instructions are executed.
     pub pc: Word,
-    /// Stack pointer (should only be `Byte`, not a `Word`).
+    /// Stack pointer (just a `Byte`, not a `Word`).
     ///
-    /// The stack pointer (S) points to a byte on Page 1, that is, to a byte whose address
-    /// is from 0100 to 01FF, where the last two digits are supplied by S. When a byte is
-    /// pushed on the stack, it is written at the address in S, and then S is decremented.
+    /// The stack pointer (S) is a register that holds the next free location of the stack.
+    /// It points to a byte on Page 1, that is, to a byte whose address is from 0100 to
+    /// 01FF, where the last two digits are supplied by S.
     pub sp: Byte,
     /// Cycle count.
     pub cycles: u32,

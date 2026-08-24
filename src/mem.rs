@@ -1,9 +1,9 @@
-use crate::{Byte, Word};
+use crate::{Byte, Word, cpu::CPU};
 
 // This is a `usize` since it refers to memory representation on the host machine (we
 // assume that `usize` is greater than `Word`). Every other type referring to a logical
 // memory location should be a `Word`.
-const MAX_MEM: usize = 1024 * 64;
+const MAX_MEM: usize = 65_536;
 
 #[derive(Clone)]
 pub struct Memory {
@@ -47,6 +47,11 @@ impl Memory {
 }
 
 /// Addressing type.
+///
+/// The MOS 6502 supports multiple addressing modes in order to provide more efficient
+/// access to memory. Each addressing mode has its own unique ASM syntax and behavior.
+///
+/// Read more: https://6502.org/users/obelisk/6502/addressing.html
 pub enum Addr {
     /// For many 6502 instructions the source and destination of the information to be
     /// manipulated is implied directly by the function of the instruction itself and no
@@ -74,26 +79,57 @@ pub enum Addr {
     Absolute,
     /// The address is computed by taking the 16-bit address from the instruction and
     /// adding the contents of the X register. For example if X contains `0x92`, then the
-    /// `STA $2000,X` instruction will store the accumulator at `0x2092` (i.e. `0x2000 +
-    /// 0x92`).
+    /// `STA $2000,X` instruction will store the value of the accumulator at `0x2092`
+    /// (i.e. `0x2000 + 0x92`).
     AbsoluteX,
-    /// The address is computed by taking the 16-bit address from the instruction and
-    /// adding the contents of the Y register. For example if Y contains `0x92`, then the
-    /// `STA $2000,Y` instruction will store the accumulator at `0x2092` (i.e. `0x2000 +
-    /// 0x92`).
+    /// The Y register indexed absolute addressing mode is the same as the `AbsoluteX` mode
+    /// only with the contents of the Y register added to the 16-bit address from the
+    /// instruction.
     AbsoluteY,
     /// Data is accessed using a pointer. The 16-bit address of the pointer is given in
     /// the two bytes following the opcode.
     Indirect,
     /// An 8-bit zero-page address and the X register are added, without carry (if the
     /// addition overflows, the address wraps around within page 0). The resulting address
-    /// is used as a pointer to the data being accessed. Note that, effectively, this
-    /// makes the X register an index into a list of pointers. Also note that pointers
-    /// are two bytes long, so the X register should be an even number when accessing a
-    /// list of pointers (otherwise you'll get half of one pointer and half of another).
+    /// is used as a pointer to the data being accessed.
+    ///
+    /// Note that, effectively, this makes the X register an index into a list of pointers.
+    /// Also note that pointers are two bytes long, so the X register should be an even
+    /// number when accessing a list of pointers (otherwise you'll get half of one pointer
+    /// and half of another).
     XIndirect,
     /// An 8-bit address identifies a pointer. The value of the Y register is added to the
     /// address contained in the pointer. Effectively, the pointer is the base address
     /// and the Y register is an index past that base address.
     IndirectY,
+}
+
+struct Resolved {
+    address: Word,
+    page_crossed: bool,
+}
+
+impl Addr {
+    fn resolve(&self, cpu: &mut CPU) -> Resolved {
+        match self {
+            Addr::Implicit => todo!(),
+            Addr::Accummulator => todo!(),
+            Addr::Immediate => {
+                Resolved { address: cpu.pc + 1, page_crossed: false }
+            },
+            Addr::ZeroPage => {
+                let zp_addr = cpu.read_byte(cpu.pc + 1);
+                Resolved { address: zp_addr as Word, page_crossed: false }
+            }
+            Addr::ZeroPageX => todo!(),
+            Addr::ZeroPageY => todo!(),
+            Addr::Relative => todo!(),
+            Addr::Absolute => todo!(),
+            Addr::AbsoluteX => todo!(),
+            Addr::AbsoluteY => todo!(),
+            Addr::Indirect => todo!(),
+            Addr::XIndirect => todo!(),
+            Addr::IndirectY => todo!(),
+        }
+    }
 }

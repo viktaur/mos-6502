@@ -21,12 +21,14 @@ impl Instruction for LDA {
             LDA(Addr::Immediate) => {
                 cpu.reg.acc = cpu.read_byte(cpu.pc + 1);
                 cpu.pc += 2;
+                cpu.cycles += 2;
             },
             // 2B, 3C
             LDA(Addr::ZeroPage) => {
                 let zp_addr = cpu.read_byte(cpu.pc + 1);
                 cpu.reg.acc = cpu.read_byte(zp_addr as Word);
                 cpu.pc += 2;
+                cpu.cycles += 3;
             },
             // 2B, 4C
             LDA(Addr::ZeroPageX) => {
@@ -34,12 +36,14 @@ impl Instruction for LDA {
                 zp_addr = zp_addr.wrapping_add(cpu.reg.x);
                 cpu.reg.acc = cpu.read_byte(zp_addr as Word);
                 cpu.pc += 2;
+                cpu.cycles += 4;
             },
             // 3B, 4C
             LDA(Addr::Absolute) => {
                 let address = cpu.read_word(cpu.pc + 1);
                 cpu.reg.acc = cpu.read_byte(address);
                 cpu.pc += 3;
+                cpu.cycles += 4;
             },
             // 3B, 4C (+1 if page crossed)
             LDA(Addr::AbsoluteX) => {
@@ -47,6 +51,7 @@ impl Instruction for LDA {
                 address += cpu.reg.x as Word;
                 cpu.reg.acc = cpu.read_byte(address);
                 cpu.pc += 3;
+                cpu.cycles += 4;
             },
             // 3B, 4C (+1 if page crossed)
             LDA(Addr::AbsoluteY) => {
@@ -54,6 +59,7 @@ impl Instruction for LDA {
                 address += cpu.reg.y as Word;
                 cpu.reg.acc = cpu.read_byte(address);
                 cpu.pc += 3;
+                cpu.cycles += 4;
             },
             // 2B, 6C
             LDA(Addr::XIndirect) => {
@@ -62,6 +68,7 @@ impl Instruction for LDA {
                 let address = cpu.read_word(ptr as Word);
                 cpu.reg.acc = cpu.read_byte(address);
                 cpu.pc += 2;
+                cpu.cycles += 6;
             },
             // 2B, 5C (+1 if page crossed)
             LDA(Addr::IndirectY) => {
@@ -70,6 +77,7 @@ impl Instruction for LDA {
                 address += cpu.reg.y as Word;
                 cpu.reg.acc = cpu.read_byte(address);
                 cpu.pc += 2;
+                // cpu.cycles += 5; -- TODO deal with page crossing
             },
             _ => panic!("Operation not supported!")
         }
